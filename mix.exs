@@ -6,7 +6,7 @@ defmodule Meandro.MixProject do
       app: :meandro,
       description: "The Elixir dead code cleaner",
       version: "0.1.0",
-      elixir: "~> 1.12",
+      elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       main: "Mix.Tasks.Meandro",
