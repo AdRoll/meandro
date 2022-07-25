@@ -1,0 +1,64 @@
+name: Elixir CI
+
+on: [push, pull_request]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        elixir_version: ['1.10.4', '1.11.4', '1.12.3', '1.13.4']
+        otp_version: ['22.3', '23.3', '24.3']
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Elixir
+      uses: erlef/setup-beam@v1
+      id: setup-beam
+      with:
+        elixir-version: ${{ matrix.elixir_version }}
+        otp-version: ${{ matrix.otp_version }}
+
+
+    - name: Restore deps and _build
+      uses: actions/cache@v2
+      id: deps_and_build_cache
+      with:
+        path: |
+          deps
+          _build
+        key: ${{ runner.os }}-mix-${{ matrix.elixir_version }}-${{ matrix.otp_version }}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+
+    - name: Restore PLTs
+      uses: actions/cache@v2
+      id: plt_cache
+      with:
+        path: priv/plts
+        key: ${{ runner.os }}-dialyzer-${{ matrix.elixir_version }}-${{ matrix.otp_version }}-plt
+
+    - name: Install dependencies
+      id: install_deps
+      run: mix do deps.get, deps.compile
+
+    - name: Check if formatted
+      id: check_format
+      # only check if the code has been properly formatted in the agent running the latest Elixir version
+      if: ${{ contains(matrix.elixir_version, '1.13') }}
+      run: mix format --check-formatted
+
+    - name: Run credo
+      id: run_credo
+      # only run credo on the latest Elixir
+      if: ${{ contains(matrix.elixir_version, '1.13') }}
+      run: mix credo --strict
+
+    # Create PLTs if no cache was found
+    - name: Create PLTs
+      id: create_plts
+      if: steps.plt_cache.outputs.cache-hit != 'true'
+      run: mix dialyzer --plt
+
+    - name: Run dialyzer
+      id: run_dialyzer
+      run: mix dialyzer
