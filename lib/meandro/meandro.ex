@@ -5,16 +5,21 @@ defmodule Meandro do
   """
 
   @doc """
-  TBA
+  Analyze
   """
-  def search_dead_code(_asts, _rules) do
-    :search
+  def analyze(files, rules) do
+    #asts = parse_files(files)
+    %{results: [],
+      unused_ignores: [],
+      stats:
+          %{ignored: nil,
+            parsing: nil,
+            analyzing:  nil,
+            total: nil}}
   end
 
-  @doc """
-  TBA
-  """
-  def remove_dead_code(_asts, _rules) do
-    "This feature has not been implemented yet."
+  defp parse_files(files) do
+    # @todo get the AST for all the files
+    files
   end
 end

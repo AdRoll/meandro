@@ -1,12 +1,13 @@
 defmodule Mix.Tasks.Meandro do
   use Mix.Task
 
-  @rules []
+  @rules [:unused_callbacks]
 
   # runs the task recursively in umbrella projects
   @recursive true
 
   @shortdoc "Cleans dead code for you"
+  @files_wildcard "**/*.{ex,exs}"
 
   # @todo Add to the @moduledoc information about the rules meandro supports
   @moduledoc """
@@ -23,59 +24,41 @@ defmodule Mix.Tasks.Meandro do
   oxbow code) that you can effectively delete and/or refactor.
   """
 
-  @switches [
-    remove: :boolean,
-    files: :string
-  ]
-
   @impl true
-  def run(argv) do
-    {opts, argv} = OptionParser.parse!(argv, strict: @switches)
+  def run(argv \\ []) do
+    #{opts, argv} = OptionParser.parse!(argv, strict: @switches)
 
-    files =
-      parse_file_list(opts[:files], argv)
-      |> ignore_files_from_config()
-
-    asts = parse_files(files)
-
-    # @todo handle rule parsing
+    Mix.shell.info("Looking for code to kill with fire...")
+    # TODO get all the rules dynamically
     rules = @rules
-
-    if opts[:remove] || false do
-      Meandro.remove_dead_code(asts, rules)
-      |> report_removal()
-    else
-      Meandro.search_dead_code(asts, rules)
-      |> report_search()
-    end
+    Mix.shell.info("Meandro rules: #{inspect(rules)}")
+    ## All files except those under _build or _checkouts
+    files = get_files()
+    Mix.shell.info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
+    Meandro.analyze(files, rules)
   end
 
-  defp parse_file_list(nil, _), do: []
-
-  defp parse_file_list(file, rest_of_files) do
-    # Always try to split the `file` string. If it was a list of comma-separated
-    # files we get a list with each file, and otherwise the single file is [wrapped]
-    # in a list, allowing us to always `++/2` the list of files
-    files = String.split(file, ",")
-    files ++ rest_of_files
+  defp get_files() do
+    Path.wildcard(@files_wildcard)
+    |> Enum.reject(&is_hidden_name?/1)
   end
 
-  defp ignore_files_from_config(files) do
-    # @todo read the `mix.exs` config and check if there are any file paths
-    # we should append/use
-    files
+  defp is_hidden_name?(".") do
+    false
   end
-
-  defp parse_files(files) do
-    # @todo get the AST for all the files
-    files
+  defp is_hidden_name?("..") do
+    false
   end
-
-  defp report_search(search_result) do
-    Mix.shell().info(inspect(search_result))
+  defp is_hidden_name?("." <> _) do
+    true
   end
-
-  defp report_removal(removal_result) do
-    Mix.shell().info(inspect(removal_result))
+  defp is_hidden_name?("_" <> _) do
+    true
+  end
+  defp is_hidden_name?("deps/" <> _) do
+    true
+  end
+  defp is_hidden_name?(_) do
+      false
   end
 end

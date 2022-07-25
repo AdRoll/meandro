@@ -31,6 +31,6 @@ defmodule MeandroRule do
         do: %MeandroRule{result | rule: rule_mod}
   rescue
     x ->
-      Mix.raise("#{inspect(rule_mod)}:analyze/3 failed: #{inspect(x)}")
+      raise("#{inspect(rule_mod)}:analyze/3 failed: #{inspect(x)}")
   end
 end
