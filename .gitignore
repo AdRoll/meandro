@@ -25,4 +25,5 @@ meandro-*.tar
 # Temporary files, for example, from tests.
 /tmp/
 
+/config/*.secret.exs
 .elixir_ls
