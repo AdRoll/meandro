@@ -4,11 +4,15 @@ defmodule Meandro do
   Documentation for `Meandro`.
   """
 
+  # the IO.read/2 option changed from :all to :eof in Elixir 1.13
+  # so Dialyzer doesn't like the old backwards compatibility mode in 1.13+
+  @dialyzer {:no_fail_call, {:parse_files, 1}}
+
   @doc """
   Analyze
   """
-  def analyze(files, rules) do
-    asts = parse_files(files)
+  def analyze(files, _rules) do
+    _asts = parse_files(files)
 
     %{
       results: [],
