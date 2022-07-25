@@ -13,9 +13,11 @@ defmodule Meandro.Rule.UnusedCallback do
   def ignored({callback, arity}, {callback, arity}) do
     true
   end
+
   def ignored({callback, _arity}, callback) do
     true
   end
+
   def ignored(_pattern, _ignore_spec) do
     false
   end
@@ -25,9 +27,11 @@ defmodule Meandro.Rule.UnusedCallback do
   end
 
   defp set_result(file, line, callback, arity) do
-    %{file: file,
+    %{
+      file: file,
       line: line,
       text: "Callback #{callback}/#{arity} is not used anywhere in the module",
-      pattern: {callback, arity}}
+      pattern: {callback, arity}
+    }
   end
 end

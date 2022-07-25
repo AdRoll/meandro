@@ -31,19 +31,20 @@ defmodule Mix.Tasks.Meandro do
   def run(argv \\ []) do
     {opts, _parsed} = OptionParser.parse!(argv, strict: @switches)
 
-    Mix.shell.info("Looking for code to kill with fire...")
+    Mix.shell().info("Looking for code to kill with fire...")
     # TODO get all the rules dynamically
     rules = @rules
-    Mix.shell.info("Meandro rules: #{inspect(rules)}")
+    Mix.shell().info("Meandro rules: #{inspect(rules)}")
     ## All files except those under _build or _checkouts
     files = get_files(Keyword.get(opts, :files))
-    Mix.shell.info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
+    Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
     Meandro.analyze(files, rules)
   end
 
   defp get_files(files) when is_binary(files) do
     String.split(files, ",")
   end
+
   defp get_files(_) do
     Path.wildcard(@files_wildcard)
     |> Enum.reject(&is_hidden_name?/1)
@@ -52,19 +53,24 @@ defmodule Mix.Tasks.Meandro do
   defp is_hidden_name?(".") do
     false
   end
+
   defp is_hidden_name?("..") do
     false
   end
+
   defp is_hidden_name?("." <> _) do
     true
   end
+
   defp is_hidden_name?("_" <> _) do
     true
   end
+
   defp is_hidden_name?("deps/" <> _) do
     true
   end
+
   defp is_hidden_name?(_) do
-      false
+    false
   end
 end
