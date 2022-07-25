@@ -31,6 +31,6 @@ defmodule MeandroRule do
         do: %MeandroRule{result | rule: rule_mod}
   rescue
     x ->
-      raise("#{inspect(rule_mod)}:analyze/3 failed: #{inspect(x)}")
+      reraise "#{inspect(rule_mod)}:analyze/3 failed: #{inspect(x)}", System.stacktrace()
   end
 end

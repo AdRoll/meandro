@@ -1,4 +1,8 @@
 defmodule Meandro.Rule.UnusedCallback do
+  @moduledoc """
+  Finds callbacks that aren't being used
+  """
+
   @behaviour MeandroRule
 
   @impl true
