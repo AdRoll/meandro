@@ -44,8 +44,14 @@ jobs:
     - name: Check if formatted
       id: check_format
       # only check if the code has been properly formatted in the agent running the latest Elixir version
-      if: contains(matrix.elixir_version, '1.13')
+      if: ${{ contains(matrix.elixir_version, '1.13') }}
       run: mix format --check-formatted
+
+    - name: Run credo
+      id: run_credo
+      # only run credo on the latest Elixir
+      if: ${{ contains(matrix.elixir_version, '1.13') }}
+      run: mix credo --strict
 
     # Create PLTs if no cache was found
     - name: Create PLTs
