@@ -8,7 +8,7 @@ defmodule Meandro do
   Analyze
   """
   def analyze(files, rules) do
-    #asts = parse_files(files)
+    asts = parse_files(files)
     %{results: [],
       unused_ignores: [],
       stats:
@@ -18,8 +18,11 @@ defmodule Meandro do
             total: nil}}
   end
 
-  defp parse_files(files) do
-    # @todo get the AST for all the files
-    files
+  defp parse_files(paths) do
+    Enum.map(paths, fn p ->
+      f = File.open!(p)
+      c = IO.read(f, :all)
+      Code.string_to_quoted(c)
+    end)
   end
 end
