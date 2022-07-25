@@ -26,4 +26,4 @@ meandro-*.tar
 /tmp/
 
 /config/*.secret.exs
-.elixir_ls
+.elixir_ls/
