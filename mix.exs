@@ -13,7 +13,8 @@ defmodule Meandro.MixProject do
       dialyzer: [
         flags: [:no_return, :unmatched_returns, :error_handling, :underspecs],
         plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
-      ]
+      ],
+      aliases: aliases()
     ]
   end
 
@@ -30,5 +31,9 @@ defmodule Meandro.MixProject do
       {:dialyxir, "~> 1.2", only: [:dev], runtime: false},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false}
     ]
+  end
+
+  defp aliases() do
+    [all: ["format --check-formatted", "dialyzer", "credo --strict"]]
   end
 end
