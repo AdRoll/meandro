@@ -28,7 +28,7 @@ defmodule Mix.Tasks.Meandro do
   """
   use Mix.Task
 
-  @rules [:unused_callbacks]
+  @rules []
 
   # runs the task recursively in umbrella projects
   @recursive true

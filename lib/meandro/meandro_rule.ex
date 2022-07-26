@@ -1,4 +1,4 @@
-defmodule MeandroRule do
+defmodule Meandro.Rule do
   @moduledoc """
   Module that defines the behaviour that `meandro`'s rules will
   implement.
@@ -10,7 +10,7 @@ defmodule MeandroRule do
 
   @type asts() :: [{Path.t(), Macro.t()}]
 
-  @type result() :: %MeandroRule{
+  @type result() :: %Meandro.Rule{
           file: Path.t(),
           line: non_neg_integer(),
           text: charlist(),
@@ -29,7 +29,7 @@ defmodule MeandroRule do
   @spec analyze(rule_mod :: module(), asts :: asts(), context :: term()) :: [result()]
   def analyze(rule_mod, asts, context) do
     for result <- rule_mod.analyze(asts, context),
-        do: %MeandroRule{result | rule: rule_mod}
+        do: %Meandro.Rule{result | rule: rule_mod}
   rescue
     x ->
       reraise "#{inspect(rule_mod)}:analyze/3 failed: #{inspect(x)}", __STACKTRACE__
