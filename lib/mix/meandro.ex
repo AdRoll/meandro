@@ -25,7 +25,7 @@ defmodule Mix.Tasks.Meandro do
 
   @switches [
     files: :string,
-    parsing_style: :string
+    parsing: :string
   ]
 
   @impl true
@@ -41,7 +41,7 @@ defmodule Mix.Tasks.Meandro do
     files = get_files(Keyword.get(parsed, :files), rest)
 
     parsing_style =
-      Keyword.get(parsed, :parsing_style, "parallel")
+      Keyword.get(parsed, :parsing, "parallel")
       |> String.to_existing_atom()
 
     Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
