@@ -51,7 +51,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
          {:defmodule, [line: _], [{:__aliases__, [line: _], aliases}, _other]} = ast,
          acc
        ) do
-    module_name = aliases |> Enum.map(&Atom.to_string/1) |> Enum.join(".") |> String.to_atom()
+    module_name = aliases |> Enum.map_join(".", &Atom.to_string/1) |> String.to_atom()
 
     {ast, %{acc | current_module: module_name}}
   end
@@ -101,10 +101,10 @@ defmodule Meandro.Rule.UnusedCallbacks do
     line = meta[:line]
     {name, _meta, params} = definition
 
-    unless is_nil(params) do
-      {name, length(params), line}
-    else
+    if is_nil(params) do
       {name, 0, line}
+    else
+      {name, length(params), line}
     end
   end
 end
