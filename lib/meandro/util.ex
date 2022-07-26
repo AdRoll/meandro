@@ -19,29 +19,23 @@ defmodule Meandro.Util do
           {Path.t(), [{atom(), Macro.t()}]}
         ]
   def parse_files(paths, :sequential) do
-    Enum.map(paths, fn p ->
-      f = File.open!(p)
-      c = IO.read(f, :all)
-
-      Code.string_to_quoted!(c)
-      |> maybe_split_by_module(p)
-    end)
+    Enum.map(paths, &file_to_ast/1)
     |> List.flatten()
   end
 
   def parse_files(paths, :parallel) do
-    fun = fn p ->
-      f = File.open!(p)
-      c = IO.read(f, :all)
-
-      Code.string_to_quoted!(c)
-      |> maybe_split_by_module(p)
-    end
-
     paths
-    |> Enum.map(&Task.async(fn -> fun.(&1) end))
+    |> Enum.map(&Task.async(fn -> file_to_ast(&1) end))
     |> Enum.map(&Task.await/1)
     |> List.flatten()
+  end
+
+  defp file_to_ast(file) do
+    file
+    |> File.open!()
+    |> IO.read(:all)
+    |> Code.string_to_quoted!()
+    |> maybe_split_by_module(file)
   end
 
   defp maybe_split_by_module(ast, file) do
