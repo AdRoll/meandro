@@ -45,7 +45,10 @@ defmodule Meandro.Rule.UnusedStructField do
     struct_info
   end
 
-  defp collect_struct_info({:defmodule, [line: _], [{:__aliases__, [line: _], aliases}, _other]} = ast, struct_info) do
+  defp collect_struct_info(
+         {:defmodule, [line: _], [{:__aliases__, [line: _], aliases}, _other]} = ast,
+         struct_info
+       ) do
     module_name = aliases |> Enum.map(&Atom.to_string/1) |> Enum.join(".") |> String.to_atom()
     struct_info = struct_info |> Map.put_new(:module_name, module_name)
     {ast, struct_info}
@@ -60,5 +63,4 @@ defmodule Meandro.Rule.UnusedStructField do
     IO.inspect(other)
     {other, module_name}
   end
-
 end
