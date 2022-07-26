@@ -6,8 +6,15 @@ defmodule Meandro.Util do
   # so Dialyzer doesn't like the old backwards compatibility mode in 1.13+
   @dialyzer {:no_fail_call, {:parse_files, 2}}
 
+  @typedoc """
+  parsing_style will instruct Meandro to compute the rules in parallel or sequentially.
+  """
   @type parsing_style() :: :sequential | :parallel
 
+  @doc """
+  Reads the `paths` and returns their AST as `{file, AST}` tuples.
+  It can be in `:parallel` or `:squential` depending its second argument.
+  """
   @spec parse_files([Path.t()], parsing_style()) :: [
           {Path.t(), Macro.t()}
         ]
