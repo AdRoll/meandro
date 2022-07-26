@@ -19,7 +19,7 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
 
     assert [
              %Meandro.Rule{
-               file: "bad.exs",
+               file: "test/rules/unused_callbacks/bad.exs",
                line: 5,
                pattern: {:unused, 0},
                rule: Meandro.Rule.UnusedCallbacks,
@@ -33,7 +33,7 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
 
     assert [
              %Meandro.Rule{
-               file: "bad.exs",
+               file: "test/rules/unused_callbacks/bad.exs",
                line: 5,
                pattern: {:unused, 0},
                rule: Meandro.Rule.UnusedCallbacks,
@@ -42,13 +42,8 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
            ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
   end
 
-  @doc "Copied from Meandro because it's private there"
   defp parse_files(paths) do
-    Enum.map(paths, fn p ->
-      f = File.open!("test/rules/unused_callbacks/" <> p)
-      c = IO.read(f, :all)
-      ast = Code.string_to_quoted!(c)
-      {p, ast}
-    end)
+    files = for p <- paths, do: "test/rules/unused_callbacks/" <> p
+    Meandro.Util.parse_files(files, :sequential)
   end
 end

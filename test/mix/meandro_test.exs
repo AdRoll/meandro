@@ -8,7 +8,7 @@ defmodule Mix.Tasks.MeandroTest do
 
     assert Meandro.run(["--files", input_files]) == %{
              results: [],
-             stats: %{analyzing: nil, ignored: nil, parsing: nil, total: nil},
+             stats: %{ignored: 0, total: 1, analyzed: 1, parsed: 1},
              unused_ignores: []
            }
   end

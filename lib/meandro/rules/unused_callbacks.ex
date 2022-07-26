@@ -35,7 +35,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
   defp analyze_file(file, ast) do
     {_, callbacks} = Macro.prewalk(ast, [], &collect_callbacks/2)
 
-    for {name, arity, line} <- callbacks, is_unused(name, arity, ast) do
+    for {name, arity, line} <- callbacks, is_unused?(name, arity, ast) do
       %Meandro.Rule{
         file: file,
         line: line,
@@ -56,7 +56,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
     {name, length(params), line}
   end
 
-  defp is_unused(name, arity, ast) do
+  defp is_unused?(name, arity, ast) do
     {_, count} = Macro.prewalk(ast, 0, fn node, acc -> count_calls(name, arity, node, acc) end)
     count == 0
   end
