@@ -12,7 +12,7 @@ defmodule Meandro do
   Analyze
   """
   def analyze(files, _rules) do
-    _asts = parse_files(files)
+    _asts = parse_files(files, :parallel)
 
     %{
       results: [],
@@ -21,11 +21,23 @@ defmodule Meandro do
     }
   end
 
-  defp parse_files(paths) do
+  defp parse_files(paths, :sequential) do
     Enum.map(paths, fn p ->
       f = File.open!(p)
       c = IO.read(f, :all)
       Code.string_to_quoted(c)
     end)
+  end
+
+  defp parse_files(paths, :parallel) do
+    fun = fn p ->
+      f = File.open!(p)
+      c = IO.read(f, :all)
+      Code.string_to_quoted(c)
+    end
+
+    paths
+    |> Enum.map(&(Task.async(fn -> fun.(&1) end)))
+    |> Enum.map(&Task.await/1)
   end
 end
