@@ -12,6 +12,19 @@ defmodule Mix.Tasks.Meandro do
 
   It will then apply its rules and produce a list of all the dead code (specially
   oxbow code) that you can effectively delete and/or refactor.
+
+  `meandro` accepts the following CLI options:
+    - `--files` - overrides the list of files to analyze (defaults to all the files
+      in your application(s), or whatever is configured otherwise in your `mix.exs` file).
+      It can be:
+        - a path to a single file (`--files lib/your_module.ex`),
+        - a list of comma-separated files (`--files lib/your_module.ex,lib/your_other_module.ex`),
+        - or a path to a folder with an expansion (`--files lib/*`).
+    - `--parsing` - defines how to parse the files (`sequentially` or `parallel`, defaults to `parallel`).
+
+  `meandro` can also be configured from the `mix.exs` file of your application. It accepts the following
+  configuration values:
+  ### @todo TBA when the config parsing is in place
   """
   use Mix.Task
 
