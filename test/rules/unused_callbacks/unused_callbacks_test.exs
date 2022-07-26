@@ -4,6 +4,8 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
   alias Meandro.Rule
   alias Meandro.Rule.UnusedCallbacks
 
+  @test_directory_path "test/rules/unused_callbacks/"
+
   test "emits no warnings on files without callbacks" do
     files_and_asts = parse_files(["none.exs"])
     assert [] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
@@ -15,35 +17,50 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
   end
 
   test "emits warnings on files where a callback is unused" do
-    files_and_asts = parse_files(["bad.exs"])
+    file = "bad.exs"
+    module = read_module_name(file)
+    files_and_asts = parse_files([file])
+    expected_text = "Callback #{module}:unused/0 is not used anywhere in the module"
 
     assert [
              %Meandro.Rule{
-               file: "test/rules/unused_callbacks/bad.exs",
+               file: @test_directory_path <> "bad.exs",
                line: 5,
                pattern: {:unused, 0},
                rule: Meandro.Rule.UnusedCallbacks,
-               text: "Callback unused/0 is not used anywhere in the module"
+               text: ^expected_text
              }
            ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
   end
 
   test "ONLY emits warnings on files where a callback is unused" do
-    files_and_asts = parse_files(["none.exs", "good.exs", "bad.exs"])
+    bad_file = "bad.exs"
+    module = read_module_name("bad.exs")
+    files_and_asts = parse_files(["none.exs", "good.exs", bad_file])
+    expected_text = "Callback #{module}:unused/0 is not used anywhere in the module"
 
     assert [
              %Meandro.Rule{
-               file: "test/rules/unused_callbacks/bad.exs",
+               file: @test_directory_path <> "bad.exs",
                line: 5,
                pattern: {:unused, 0},
                rule: Meandro.Rule.UnusedCallbacks,
-               text: "Callback unused/0 is not used anywhere in the module"
+               text: ^expected_text
              }
            ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
   end
 
   defp parse_files(paths) do
-    files = for p <- paths, do: "test/rules/unused_callbacks/" <> p
+    files = for p <- paths, do: @test_directory_path <> p
     Meandro.Util.parse_files(files, :sequential)
+  end
+
+  defp read_module_name(file_path) do
+    {:ok, contents} = File.read("test/rules/unused_callbacks/" <> file_path)
+    pattern = ~r{defmodule \s+ ([^\s]+) }x
+
+    Regex.scan(pattern, contents, capture: :all_but_first)
+    |> List.flatten()
+    |> List.first()
   end
 end
