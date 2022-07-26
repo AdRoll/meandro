@@ -1,6 +1,6 @@
 defmodule Meandro.Rule do
   @moduledoc """
-  Module that defines the behaviour that `meandro`'s rules will
+  Module that defines the behaviour that `Meandro`'s rules will
   implement.
   """
 
@@ -10,6 +10,9 @@ defmodule Meandro.Rule do
 
   @type asts() :: [{Path.t(), Macro.t()}]
 
+  @typedoc """
+  Piece of oxbow code detection on applying a Meandro rule.
+  """
   @type result() :: %Meandro.Rule{
           file: Path.t(),
           line: non_neg_integer(),
