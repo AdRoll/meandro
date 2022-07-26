@@ -1,17 +1,54 @@
 defmodule MeandroTest.Rule.UnusedCallbacks do
   use ExUnit.Case
 
-  alias Meandro.Rule.UnusedCallback
+  alias Meandro.Rule
+  alias Meandro.Rule.UnusedCallbacks
 
-  test "with warnings" do
-    file1 = "implementation.exs"
-    file2 = "uri_parser_behaviour.exs"
-    files_and_asts = [{file1, []}, {file2, []}]
+  test "emits no warnings on files without callbacks" do
+    files_and_asts = parse_files(["none.exs"])
+    assert [] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
+  end
 
-    [implementation_analyze_result, uri_parser_analyze_result] =
-      UnusedCallback.analyze(files_and_asts, [])
+  test "emits no warnings on files where all callbacks are used" do
+    files_and_asts = parse_files(["good.exs"])
+    assert [] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
+  end
 
-    assert %{:file => ^file1} = implementation_analyze_result
-    assert %{:file => ^file2} = uri_parser_analyze_result
+  test "emits warnings on files where a callback is unused" do
+    files_and_asts = parse_files(["bad.exs"])
+
+    assert [
+             %Meandro.Rule{
+               file: "bad.exs",
+               line: 5,
+               pattern: {:unused, 0},
+               rule: Meandro.Rule.UnusedCallbacks,
+               text: "Callback unused/0 is not used anywhere in the module"
+             }
+           ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
+  end
+
+  test "ONLY emits warnings on files where a callback is unused" do
+    files_and_asts = parse_files(["none.exs", "good.exs", "bad.exs"])
+
+    assert [
+             %Meandro.Rule{
+               file: "bad.exs",
+               line: 5,
+               pattern: {:unused, 0},
+               rule: Meandro.Rule.UnusedCallbacks,
+               text: "Callback unused/0 is not used anywhere in the module"
+             }
+           ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
+  end
+
+  @doc "Copied from Meandro because it's private there"
+  defp parse_files(paths) do
+    Enum.map(paths, fn p ->
+      f = File.open!("test/rules/unused_callbacks/" <> p)
+      c = IO.read(f, :all)
+      ast = Code.string_to_quoted!(c, token_metadata: true)
+      {p, ast}
+    end)
   end
 end

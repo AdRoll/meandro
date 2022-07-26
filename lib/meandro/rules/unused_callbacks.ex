@@ -1,9 +1,15 @@
-defmodule Meandro.Rule.UnusedCallback do
+defmodule Meandro.Rule.UnusedCallbacks do
   @moduledoc """
-  Finds callbacks that aren't being used
+  Finds callbacks that aren't being used in the module where they're defined.
+
+  This rule assumes:
+  1. That you always use the callbacks that you define for a behaviour in the
+     same module where you define the behaviour.
+  2. That you always call the callback functions using dot notation (i.e. `mod.callback(…)`).
+     If you use `:erlang.apply(…)` or other method, you'll have to ignore this rule.
   """
 
-  @behaviour MeandroRule
+  @behaviour Meandro.Rule
 
   @impl true
   def analyze(files_and_asts, _options) do
@@ -26,16 +32,49 @@ defmodule Meandro.Rule.UnusedCallback do
     false
   end
 
-  defp analyze_file(file, _ast) do
-    [set_result(file, nil, nil, nil)]
+  defp analyze_file(file, ast) do
+    {_, callbacks} = Macro.prewalk(ast, [], &collect_callbacks/2)
+
+    for {name, arity, line} <- callbacks, is_unused(name, arity, ast) do
+      %Meandro.Rule{
+        file: file,
+        line: line,
+        text: "Callback #{name}/#{arity} is not used anywhere in the module",
+        pattern: {name, arity}
+      }
+    end
   end
 
-  defp set_result(file, line, callback, arity) do
-    %{
-      file: file,
-      line: line,
-      text: "Callback #{callback}/#{arity} is not used anywhere in the module",
-      pattern: {callback, arity}
-    }
+  defp collect_callbacks({:callback, _, _} = callback, acc),
+    do: {callback, [parse(callback) | acc]}
+
+  defp collect_callbacks(other, acc), do: {other, acc}
+
+  defp parse({:callback, meta, [{:"::", _, [definition, _result]}]}) do
+    line = Keyword.get(meta, :line, 0)
+    {name, _, params} = definition
+    {name, length(params), line}
   end
+
+  defp is_unused(name, arity, ast) do
+    {_, count} = Macro.prewalk(ast, 0, fn node, acc -> count_calls(name, arity, node, acc) end)
+    count == 0
+  end
+
+  # Standard function application: SOMETHING.name(params) with the right number of params
+  defp count_calls(name, arity, {{:., _, [_, name]}, _, params} = node, acc)
+       when length(params) == arity,
+       do: {node, acc + 1}
+
+  # Function references: &SOMETHING.name/arity
+  defp count_calls(
+         name,
+         arity,
+         {:&, _, [{:/, _, [{{:., _, [_, name]}, _, []}, arity]}]} = node,
+         acc
+       ),
+       do: {node, acc + 1}
+
+  # All other nodes
+  defp count_calls(_, _, node, acc), do: {node, acc}
 end
