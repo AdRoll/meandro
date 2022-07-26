@@ -24,7 +24,8 @@ defmodule Mix.Tasks.Meandro do
   @files_wildcard "**/*.{ex,exs}"
 
   @switches [
-    files: :string
+    files: :string,
+    parsing_style: :string
   ]
 
   @impl true
@@ -35,10 +36,16 @@ defmodule Mix.Tasks.Meandro do
     # TODO get all the rules dynamically
     rules = @rules
     Mix.shell().info("Meandro rules: #{inspect(rules)}")
+
     ## All files except those under _build or _checkouts
     files = get_files(Keyword.get(opts, :files))
+
+    parsing_style =
+      Keyword.get(opts, :parsing_style, "parallel")
+      |> String.to_existing_atom()
+
     Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
-    Meandro.analyze(files, rules)
+    Meandro.analyze(files, rules, parsing_style)
   end
 
   defp get_files(files) when is_binary(files) do

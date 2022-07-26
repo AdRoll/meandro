@@ -11,8 +11,8 @@ defmodule Meandro do
   @doc """
   Analyze
   """
-  def analyze(files, _rules) do
-    _asts = parse_files(files, :parallel)
+  def analyze(files, _rules, parsing_style) do
+    _asts = parse_files(files, parsing_style)
 
     %{
       results: [],
@@ -21,6 +21,7 @@ defmodule Meandro do
     }
   end
 
+  @spec parse_files(paths :: [Path.t()], parsing_style :: :sequential | :parallel) :: [Macro.t()]
   defp parse_files(paths, :sequential) do
     Enum.map(paths, fn p ->
       f = File.open!(p)
