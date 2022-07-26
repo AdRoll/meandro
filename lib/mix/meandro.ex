@@ -11,7 +11,7 @@ defmodule Mix.Tasks.Meandro do
   you're working in an umbrella project).
 
   It will then apply its rules and produce a list of all the dead code (specially
-  oxbow code) that you can effectively delete and/or refactor.
+  Oxbow code) that you can effectively delete and/or refactor.
 
   `meandro` accepts the following CLI options:
     - `--files` - overrides the list of files to analyze (defaults to all the files
