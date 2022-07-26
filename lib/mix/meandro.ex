@@ -30,7 +30,7 @@ defmodule Mix.Tasks.Meandro do
 
   @impl true
   def run(argv \\ []) do
-    {opts, _parsed} = OptionParser.parse!(argv, strict: @switches)
+    {parsed, rest} = OptionParser.parse!(argv, strict: @switches)
 
     Mix.shell().info("Looking for oxbow lakes to dry up...")
     # TODO get all the rules dynamically
@@ -38,21 +38,21 @@ defmodule Mix.Tasks.Meandro do
     Mix.shell().info("Meandro rules: #{inspect(rules)}")
 
     ## All files except those under _build or _checkouts
-    files = get_files(Keyword.get(opts, :files))
+    files = get_files(Keyword.get(parsed, :files), rest)
 
     parsing_style =
-      Keyword.get(opts, :parsing_style, "parallel")
+      Keyword.get(parsed, :parsing_style, "parallel")
       |> String.to_existing_atom()
 
     Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
     Meandro.analyze(files, rules, parsing_style)
   end
 
-  defp get_files(files) when is_binary(files) do
-    String.split(files, ",")
+  defp get_files(files, rest_of_files) when is_binary(files) do
+    String.split(files, ",") ++ rest_of_files
   end
 
-  defp get_files(_) do
+  defp get_files(_, _) do
     Path.wildcard(@files_wildcard)
     |> Enum.reject(&is_hidden_name?/1)
   end
