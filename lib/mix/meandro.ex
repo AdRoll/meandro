@@ -1,13 +1,4 @@
 defmodule Mix.Tasks.Meandro do
-  use Mix.Task
-
-  @rules []
-
-  # runs the task recursively in umbrella projects
-  @recursive true
-
-  @shortdoc "Cleans dead code for you"
-
   # @todo Add to the @moduledoc information about the rules meandro supports
   @moduledoc """
   `meandro` is a helper for dead code cleaning. It can assist you on searching
@@ -22,60 +13,71 @@ defmodule Mix.Tasks.Meandro do
   It will then apply its rules and produce a list of all the dead code (specially
   oxbow code) that you can effectively delete and/or refactor.
   """
+  use Mix.Task
+
+  @rules [:unused_callbacks]
+
+  # runs the task recursively in umbrella projects
+  @recursive true
+
+  @shortdoc "Identifies dead code for you"
+  @files_wildcard "**/*.{ex,exs}"
 
   @switches [
-    remove: :boolean,
-    files: :string
+    files: :string,
+    parsing_style: :string
   ]
 
   @impl true
-  def run(argv) do
-    {opts, argv} = OptionParser.parse!(argv, strict: @switches)
+  def run(argv \\ []) do
+    {opts, _parsed} = OptionParser.parse!(argv, strict: @switches)
 
-    files =
-      parse_file_list(opts[:files], argv)
-      |> ignore_files_from_config()
-
-    asts = parse_files(files)
-
-    # @todo handle rule parsing
+    Mix.shell().info("Looking for oxbow lakes to dry up...")
+    # TODO get all the rules dynamically
     rules = @rules
+    Mix.shell().info("Meandro rules: #{inspect(rules)}")
 
-    if opts[:remove] || false do
-      Meandro.remove_dead_code(asts, rules)
-      |> report_removal()
-    else
-      Meandro.search_dead_code(asts, rules)
-      |> report_search()
-    end
+    ## All files except those under _build or _checkouts
+    files = get_files(Keyword.get(opts, :files))
+
+    parsing_style =
+      Keyword.get(opts, :parsing_style, "parallel")
+      |> String.to_existing_atom()
+
+    Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
+    Meandro.analyze(files, rules, parsing_style)
   end
 
-  defp parse_file_list(nil, _), do: []
-
-  defp parse_file_list(file, rest_of_files) do
-    # Always try to split the `file` string. If it was a list of comma-separated
-    # files we get a list with each file, and otherwise the single file is [wrapped]
-    # in a list, allowing us to always `++/2` the list of files
-    files = String.split(file, ",")
-    files ++ rest_of_files
+  defp get_files(files) when is_binary(files) do
+    String.split(files, ",")
   end
 
-  defp ignore_files_from_config(files) do
-    # @todo read the `mix.exs` config and check if there are any file paths
-    # we should append/use
-    files
+  defp get_files(_) do
+    Path.wildcard(@files_wildcard)
+    |> Enum.reject(&is_hidden_name?/1)
   end
 
-  defp parse_files(files) do
-    # @todo get the AST for all the files
-    files
+  defp is_hidden_name?(".") do
+    false
   end
 
-  defp report_search(search_result) do
-    Mix.shell().info(inspect(search_result))
+  defp is_hidden_name?("..") do
+    false
   end
 
-  defp report_removal(removal_result) do
-    Mix.shell().info(inspect(removal_result))
+  defp is_hidden_name?("." <> _) do
+    true
+  end
+
+  defp is_hidden_name?("_" <> _) do
+    true
+  end
+
+  defp is_hidden_name?("deps/" <> _) do
+    true
+  end
+
+  defp is_hidden_name?(_) do
+    false
   end
 end

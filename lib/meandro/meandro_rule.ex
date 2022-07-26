@@ -24,13 +24,13 @@ defmodule MeandroRule do
 
   @callback analyze(asts(), term()) :: [result()]
 
-  @callback ignored(ignore_pattern(), term()) :: boolean()
+  @callback is_ignored?(ignore_pattern(), term()) :: boolean()
 
   def analyze(rule_mod, asts, context) do
     for result <- rule_mod.analyze(asts, context),
         do: %MeandroRule{result | rule: rule_mod}
   rescue
     x ->
-      Mix.raise("#{inspect(rule_mod)}:analyze/3 failed: #{inspect(x)}")
+      reraise "#{inspect(rule_mod)}:analyze/3 failed: #{inspect(x)}", System.stacktrace()
   end
 end
