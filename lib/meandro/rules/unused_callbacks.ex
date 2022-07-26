@@ -51,9 +51,14 @@ defmodule Meandro.Rule.UnusedCallbacks do
   defp collect_callbacks(other, acc), do: {other, acc}
 
   defp parse({:callback, meta, [{:"::", _, [definition, _result]}]}) do
-    line = Keyword.get(meta, :line, 0)
-    {name, _, params} = definition
-    {name, length(params), line}
+    line = meta[:line]
+    {name, _meta, params} = definition
+
+    unless is_nil(params) do
+      {name, length(params), line}
+    else
+      {name, 0, line}
+    end
   end
 
   defp is_unused?(name, arity, ast) do
