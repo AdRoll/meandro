@@ -16,27 +16,51 @@ defmodule Meandro.Util do
   It can be in `:parallel` or `:sequential` depending its second argument.
   """
   @spec parse_files([Path.t()], parsing_style()) :: [
-          {Path.t(), Macro.t()}
+          {Path.t(), [{atom(), Macro.t()}]}
         ]
   def parse_files(paths, :sequential) do
     Enum.map(paths, fn p ->
       f = File.open!(p)
       c = IO.read(f, :all)
-      ast = Code.string_to_quoted!(c)
-      {p, ast}
+
+      Code.string_to_quoted!(c)
+      |> maybe_break_by_module(p)
     end)
+    |> List.flatten()
   end
 
   def parse_files(paths, :parallel) do
     fun = fn p ->
       f = File.open!(p)
       c = IO.read(f, :all)
-      ast = Code.string_to_quoted!(c)
-      {p, ast}
+
+      Code.string_to_quoted!(c)
+      |> maybe_break_by_module(p)
     end
 
     paths
     |> Enum.map(&Task.async(fn -> fun.(&1) end))
     |> Enum.map(&Task.await/1)
+    |> List.flatten()
+  end
+
+  defp maybe_break_by_module(ast, file) do
+    {_, result} = Macro.prewalk(ast, [], &collect_modules/2)
+    {file, result}
+  end
+
+  defp collect_modules({:defmodule, _, _} = module_node, acc) do
+    {module_node, [{module_name(module_node), module_node} | acc]}
+  end
+
+  defp collect_modules(node, acc) do
+    {node, acc}
+  end
+
+  @doc """
+  Returns the module name given a module node AST
+  """
+  def module_name({:defmodule, _, [{:__aliases__, _, aliases}, _]}) do
+    Enum.map_join(aliases, ".", &Atom.to_string/1) |> String.to_atom()
   end
 end
