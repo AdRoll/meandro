@@ -3,12 +3,12 @@ defmodule Meandro.Rule.UnusedStructField do
   Finds callbacks that aren't being used
   """
 
-  @behaviour MeandroRule
+  @behaviour Meandro.Rule
 
   @impl true
   def analyze(files_and_asts, _options) do
     for {file, ast} <- files_and_asts,
-        result <- analyze_file(file, ast) do
+        result <- analyze_file(file, ast, files_and_asts) do
       result
     end
   end
@@ -26,9 +26,20 @@ defmodule Meandro.Rule.UnusedStructField do
     false
   end
 
-  defp analyze_file(_file, ast) do
+  defp analyze_file(_file, ast, files_and_asts) do
     struct_info = struct_info(ast)
-    IO.inspect(struct_info)
+    case Map.size(struct_info) do
+      0 ->
+        []
+      _ ->
+        fields = Map.get(struct_info, :fields)
+        module_name = Map.get(struct_info, :module_name)
+        for field <- fields do
+          unused = is_unused(field, module_name, files_and_asts)
+          IO.puts("The field #{field} from the struct #{module_name}")
+          unused
+        end
+    end
   end
 
   defp set_result(file, line, callback, arity) do
@@ -60,7 +71,23 @@ defmodule Meandro.Rule.UnusedStructField do
   end
 
   defp collect_struct_info(other, module_name) do
-    IO.inspect(other)
     {other, module_name}
+  end
+
+  defp is_unused(_field, _module, []) do
+    true
+  end
+
+  defp is_unused(field, module, [{_file, ast} | tl]) do
+    case Macro.prewalk(ast, {true, field, module}, &is_unused_in_ast/2) do
+      {_, {true, _, _}} ->
+        is_unused(field, module, tl)
+      {_, {false, _, _}}  ->
+        false
+    end
+  end
+
+  defp is_unused_in_ast(other, {result, field, module}) do
+    {other, {result, field, module}}
   end
 end
