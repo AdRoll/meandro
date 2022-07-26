@@ -4,7 +4,7 @@ defmodule Meandro.Rule do
   implement.
   """
 
-  defstruct file: "", line: 0, text: "", rule: :undefined, pattern: :undefined
+  defstruct [:module_name, file: "", line: 0, text: "", rule: :undefined, pattern: :undefined]
 
   @type t() :: :undefined | module()
 
@@ -18,7 +18,8 @@ defmodule Meandro.Rule do
           line: non_neg_integer(),
           text: charlist(),
           rule: t(),
-          pattern: ignore_pattern()
+          pattern: ignore_pattern(),
+          module_name: any()
         }
 
   @type ignore_pattern() :: :undefined | tuple()

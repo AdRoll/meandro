@@ -24,24 +24,24 @@ defmodule Meandro.Rules.UnusedRecordFields do
   end
 
   defp record_info(ast) do
-    {_, record_info} = Macro.prewalk(ast, %{}, &collect_record_info/2)
+    {_, record_info} = Macro.prewalk(ast, %Meandro.Rule{}, &collect_record_info/2)
     record_info
   end
 
   defp collect_record_info({:defmodule, [line: _], [{:__aliases__, [line: _], aliases}, _other]} = ast, record_info) do
     IO.inspect(record_info, label: "record info")
     module_name = aliases |> Enum.map(&Atom.to_string/1) |> Enum.join(".") |> String.to_atom()
-    record_info = record_info |> Map.put_new(:module_name, module_name)
+    record_info = %{record_info | module_name: module_name}
     {ast, record_info}
   end
 
   defp collect_record_info({:defrecord, [line: _], [fields]} = ast, record_info) do
-    record_info = record_info |> Map.put_new(:fields, fields)
+    record_info = %{record_info | fields: fields}
     {ast, record_info}
   end
 
   defp collect_record_info({:defrecordp, [line: _], [fields]} = ast, record_info) do
-    record_info = record_info |> Map.put_new(:fields, fields)
+    record_info = %{record_info | fields: fields}
     {ast, record_info}
   end
 
