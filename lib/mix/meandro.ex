@@ -31,7 +31,7 @@ defmodule Mix.Tasks.Meandro do
   def run(argv \\ []) do
     {opts, _parsed} = OptionParser.parse!(argv, strict: @switches)
 
-    Mix.shell().info("Looking for code to kill with fire...")
+    Mix.shell().info("Looking for oxbow lakes to dry up...")
     # TODO get all the rules dynamically
     rules = @rules
     Mix.shell().info("Meandro rules: #{inspect(rules)}")

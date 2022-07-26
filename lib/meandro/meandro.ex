@@ -6,7 +6,7 @@ defmodule Meandro do
 
   # the IO.read/2 option changed from :all to :eof in Elixir 1.13
   # so Dialyzer doesn't like the old backwards compatibility mode in 1.13+
-  @dialyzer {:no_fail_call, {:parse_files, 1}}
+  @dialyzer {:no_fail_call, {:parse_files, 2}}
 
   @doc """
   Analyze
