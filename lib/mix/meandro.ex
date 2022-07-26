@@ -20,7 +20,7 @@ defmodule Mix.Tasks.Meandro do
   # runs the task recursively in umbrella projects
   @recursive true
 
-  @shortdoc "Cleans dead code for you"
+  @shortdoc "Identifies dead code for you"
   @files_wildcard "**/*.{ex,exs}"
 
   @switches [

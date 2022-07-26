@@ -14,15 +14,15 @@ defmodule Meandro.Rule.UnusedCallback do
   end
 
   @impl true
-  def ignored({callback, arity}, {callback, arity}) do
+  def is_ignored?({callback, arity}, {callback, arity}) do
     true
   end
 
-  def ignored({callback, _arity}, callback) do
+  def is_ignored?({callback, _arity}, callback) do
     true
   end
 
-  def ignored(_pattern, _ignore_spec) do
+  def is_ignored?(_pattern, _ignore_spec) do
     false
   end
 

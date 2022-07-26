@@ -24,7 +24,7 @@ defmodule MeandroRule do
 
   @callback analyze(asts(), term()) :: [result()]
 
-  @callback ignored(ignore_pattern(), term()) :: boolean()
+  @callback is_ignored?(ignore_pattern(), term()) :: boolean()
 
   def analyze(rule_mod, asts, context) do
     for result <- rule_mod.analyze(asts, context),
