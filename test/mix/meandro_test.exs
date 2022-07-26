@@ -4,7 +4,7 @@ defmodule Mix.Tasks.MeandroTest do
   alias Mix.Tasks.Meandro
 
   test "run mix meandro" do
-    input_files = "mix/files/test_app.exs"
+    input_files = "test/mix/files/test_app.exs"
 
     assert Meandro.run(["--files", input_files]) == %{
              results: [],

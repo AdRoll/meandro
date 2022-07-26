@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        elixir_version: ['1.10.4', '1.11.4', '1.12.3', '1.13.4']
-        otp_version: ['22.3', '23.3', '24.3']
+        elixir_version: ['1.11.4', '1.12.3', '1.13.4']
+        otp_version: ['23.3', '24.3']
 
     steps:
     - uses: actions/checkout@v2
@@ -53,7 +53,11 @@ jobs:
       if: ${{ contains(matrix.elixir_version, '1.13') }}
       run: mix credo --strict
 
-    # Create PLTs if no cache was found
+    - name: Run tests
+      id: run_tests
+      run: mix test
+
+    # Only generate thhe PLTs if no cache was found
     - name: Create PLTs
       id: create_plts
       if: steps.plt_cache.outputs.cache-hit != 'true'

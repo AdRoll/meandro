@@ -11,7 +11,20 @@ defmodule Mix.Tasks.Meandro do
   you're working in an umbrella project).
 
   It will then apply its rules and produce a list of all the dead code (specially
-  oxbow code) that you can effectively delete and/or refactor.
+  Oxbow code) that you can effectively delete and/or refactor.
+
+  `meandro` accepts the following CLI options:
+    - `--files` - overrides the list of files to analyze (defaults to all the files
+      in your application(s), or whatever is configured otherwise in your `mix.exs` file).
+      It can be:
+        - a path to a single file (`--files lib/your_module.ex`),
+        - a list of comma-separated files (`--files lib/your_module.ex,lib/your_other_module.ex`),
+        - or a path to a folder with an expansion (`--files lib/*`).
+    - `--parsing` - defines how to parse the files (`sequentially` or `parallel`, defaults to `parallel`).
+
+  `meandro` can also be configured from the `mix.exs` file of your application. It accepts the following
+  configuration values:
+  ### @todo TBA when the config parsing is in place
   """
   use Mix.Task
 
@@ -25,12 +38,12 @@ defmodule Mix.Tasks.Meandro do
 
   @switches [
     files: :string,
-    parsing_style: :string
+    parsing: :string
   ]
 
   @impl true
   def run(argv \\ []) do
-    {opts, _parsed} = OptionParser.parse!(argv, strict: @switches)
+    {parsed, rest} = OptionParser.parse!(argv, strict: @switches)
 
     Mix.shell().info("Looking for oxbow lakes to dry up...")
     # TODO get all the rules dynamically
@@ -38,21 +51,21 @@ defmodule Mix.Tasks.Meandro do
     Mix.shell().info("Meandro rules: #{inspect(rules)}")
 
     ## All files except those under _build or _checkouts
-    files = get_files(Keyword.get(opts, :files))
+    files = get_files(Keyword.get(parsed, :files), rest)
 
     parsing_style =
-      Keyword.get(opts, :parsing_style, "parallel")
+      Keyword.get(parsed, :parsing, "parallel")
       |> String.to_existing_atom()
 
     Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
     Meandro.analyze(files, rules, parsing_style)
   end
 
-  defp get_files(files) when is_binary(files) do
-    String.split(files, ",")
+  defp get_files(files, rest_of_files) when is_binary(files) do
+    String.split(files, ",") ++ rest_of_files
   end
 
-  defp get_files(_) do
+  defp get_files(_, _) do
     Path.wildcard(@files_wildcard)
     |> Enum.reject(&is_hidden_name?/1)
   end
