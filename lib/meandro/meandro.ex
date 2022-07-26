@@ -38,7 +38,7 @@ defmodule Meandro do
     Enum.map(paths, fn p ->
       f = File.open!(p)
       c = IO.read(f, :all)
-      ast = Code.string_to_quoted!(c, token_metadata: true)
+      ast = Code.string_to_quoted!(c)
       {p, ast}
     end)
   end
@@ -47,7 +47,7 @@ defmodule Meandro do
     fun = fn p ->
       f = File.open!(p)
       c = IO.read(f, :all)
-      ast = Code.string_to_quoted!(c, token_metadata: true)
+      ast = Code.string_to_quoted!(c)
       {p, ast}
     end
 

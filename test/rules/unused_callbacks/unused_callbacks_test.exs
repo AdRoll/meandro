@@ -47,7 +47,7 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
     Enum.map(paths, fn p ->
       f = File.open!("test/rules/unused_callbacks/" <> p)
       c = IO.read(f, :all)
-      ast = Code.string_to_quoted!(c, token_metadata: true)
+      ast = Code.string_to_quoted!(c)
       {p, ast}
     end)
   end
