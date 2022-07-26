@@ -6,7 +6,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
   1. That you always use the callbacks that you define for a behaviour in the
      same module where you define the behaviour.
   2. That you always call the callback functions using dot notation (i.e. `mod.callback(…)`).
-     If you use `:erlang.apply(…)` or other method, you'll have to ignore this rule.
+     If you use `apply(…)` or other method, you'll have to ignore this rule.
   """
 
   @behaviour Meandro.Rule
