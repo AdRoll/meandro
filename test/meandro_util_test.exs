@@ -1,6 +1,6 @@
 defmodule MeandroTest.Util do
   use ExUnit.Case
-  @tag :wip
+
   test "split the file asts on one file:multiple modules" do
     input_file = "test/mix/files/test_app.exs"
 
