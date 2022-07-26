@@ -60,6 +60,7 @@ defmodule Meandro.Util do
   @doc """
   Returns the module name given a module node AST
   """
+  @spec module_name(Macro.t()) :: atom()
   def module_name({:defmodule, _, [{:__aliases__, _, aliases}, _]}) do
     Enum.map_join(aliases, ".", &Atom.to_string/1) |> String.to_atom()
   end
