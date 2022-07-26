@@ -13,7 +13,7 @@ defmodule Meandro.Util do
 
   @doc """
   Reads the `paths` and returns their AST as `{file, AST}` tuples.
-  It can be in `:parallel` or `:squential` depending its second argument.
+  It can be in `:parallel` or `:sequential` depending its second argument.
   """
   @spec parse_files([Path.t()], parsing_style()) :: [
           {Path.t(), Macro.t()}
