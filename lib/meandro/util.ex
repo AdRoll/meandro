@@ -24,7 +24,7 @@ defmodule Meandro.Util do
       c = IO.read(f, :all)
 
       Code.string_to_quoted!(c)
-      |> maybe_break_by_module(p)
+      |> maybe_split_by_module(p)
     end)
     |> List.flatten()
   end
@@ -35,7 +35,7 @@ defmodule Meandro.Util do
       c = IO.read(f, :all)
 
       Code.string_to_quoted!(c)
-      |> maybe_break_by_module(p)
+      |> maybe_split_by_module(p)
     end
 
     paths
@@ -44,7 +44,7 @@ defmodule Meandro.Util do
     |> List.flatten()
   end
 
-  defp maybe_break_by_module(ast, file) do
+  defp maybe_split_by_module(ast, file) do
     {_, result} = Macro.prewalk(ast, [], &collect_modules/2)
     {file, result}
   end
