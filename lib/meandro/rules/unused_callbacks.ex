@@ -11,7 +11,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
 
   @behaviour Meandro.Rule
 
-  @impl true
+  @impl Meandro.Rule
   def analyze(files_and_asts, _options) do
     for {file, ast} <- files_and_asts,
         result <- analyze_file(file, ast) do
@@ -19,7 +19,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
     end
   end
 
-  @impl true
+  @impl Meandro.Rule
   def is_ignored?({callback, arity}, {callback, arity}) do
     true
   end
