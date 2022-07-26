@@ -21,7 +21,12 @@ defmodule Meandro do
     %{
       results: results,
       unused_ignores: [],
-      stats: %{ignored: 0, parsed: length(files_and_asts), analyzed: length(files_and_asts), total: length(files_and_asts)}
+      stats: %{
+        ignored: 0,
+        parsed: length(files_and_asts),
+        analyzed: length(files_and_asts),
+        total: length(files_and_asts)
+      }
     }
   end
 end
