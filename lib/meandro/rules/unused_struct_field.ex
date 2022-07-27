@@ -2,7 +2,9 @@ defmodule Meandro.Rule.UnusedStructField do
   @moduledoc """
   Finds struct fields that are not used.
   It has the following assumptions:
-    - As we are not tracking the value of each variable and a variable can be reassigned we don't check the struct name when looking for access to an struct field or modification
+    - As we are not tracking the value of each variable and a variable can be
+      reassigned we don't check the struct name when looking for access to an
+      struct field or modification
   """
 
   @behaviour Meandro.Rule
