@@ -26,7 +26,8 @@ defmodule Meandro.Rule.UnusedRecordFields do
   defp analyze_file(file, ast) do
     {_, acc} = Macro.prewalk(ast, %{module: nil, records: []}, &collect_record_info/2)
 
-    for {_module, name, _num_of_fields, unused_fields, line, scope} <- Enum.reverse(acc[:records]),
+    for {_module, name, _num_of_fields, unused_fields, line, scope} <-
+          Enum.reverse(acc[:records]),
         unused_fields != [] do
       %Meandro.Rule{
         file: file,
@@ -97,7 +98,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
   end
 
   # E.g.:
-  # {:{}, [line: _], [ {:__aliases__, [line: _], [:PrivRecord]}, {:variable, [line: _], nil}, {:variable, [line: _], nil}]}
+  # {:{}, [line: _],[{:__aliases__, [line: _],[:PrivRecord]},{:variable, [line: _], nil},{:variable, [line: _], nil}]}
   defp collect_record_info(
          {:{}, [line: _], [{:__aliases__, [line: _], [maybe_record_name]} | args]} = ast,
          %{module: module, records: records} = acc

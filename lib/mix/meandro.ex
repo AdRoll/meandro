@@ -62,8 +62,11 @@ defmodule Mix.Tasks.Meandro do
 
     Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
 
-    Meandro.analyze(files, rules, parsing_style)
-    |> IO.inspect(label: "Meandro obtained the following results", pretty: true)
+    result = Meandro.analyze(files, rules, parsing_style)
+    result_str = Kernel.inspect(result, pretty: true)
+
+    IO.puts("Meandro obtained the following results: #{result_str}")
+    result
   end
 
   defp get_files(files, rest_of_files) when is_binary(files) do

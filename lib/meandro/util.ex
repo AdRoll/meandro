@@ -41,6 +41,6 @@ defmodule Meandro.Util do
   end
 
   def ast_module_name_to_atom(aliases) do
-    aliases |> Enum.map(&Atom.to_string/1) |> Enum.join(".") |> String.to_atom()
+    aliases |> Enum.map_join(".", &Atom.to_string/1) |> String.to_atom()
   end
 end
