@@ -41,7 +41,7 @@ defmodule Meandro.Util do
   end
 
   defp collect_modules({:defmodule, _, _} = module_node, acc) do
-    {module_node, [{module_name(module_node), module_node} | acc]}
+    {module_node, acc ++ [{module_name(module_node), module_node}]}
   end
 
   defp collect_modules(node, acc) do
