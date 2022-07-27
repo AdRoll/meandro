@@ -9,6 +9,8 @@ defmodule Meandro.Rule.UnusedCallbacks do
      If you use `apply(…)` or other method, you'll have to ignore this rule.
   """
 
+  alias Meandro.Util
+
   @behaviour Meandro.Rule
 
   @impl Meandro.Rule
@@ -33,7 +35,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
   end
 
   defp analyze_file(file, ast) do
-    {_, acc} = Macro.prewalk(ast, %{current_module: nil, callbacks: []}, &collect_callbacks/2)
+    {_, acc} = Macro.prewalk(ast, %{module: nil, callbacks: []}, &collect_callbacks/2)
     %{callbacks: callbacks} = acc
 
     for {module, name, arity, line, count} <- callbacks, count == 0 do
@@ -51,9 +53,9 @@ defmodule Meandro.Rule.UnusedCallbacks do
          {:defmodule, [line: _], [{:__aliases__, [line: _], aliases}, _other]} = ast,
          acc
        ) do
-    module_name = aliases |> Enum.map_join(".", &Atom.to_string/1) |> String.to_atom()
+    module_name = Util.ast_module_name_to_atom(aliases)
 
-    {ast, %{acc | current_module: module_name}}
+    {ast, %{acc | module: module_name}}
   end
 
   # When we find a callback, we write it down together with the module it was found on.
@@ -61,7 +63,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
   # the AST.
   defp collect_callbacks(
          {:callback, _, _} = callback,
-         %{current_module: module, callbacks: callbacks} = acc
+         %{module: module, callbacks: callbacks} = acc
        ) do
     {name, arity, line} = parse(callback)
 
@@ -84,7 +86,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
   defp collect_callbacks(other, acc), do: {other, acc}
 
   defp maybe_update_callback_count(
-         %{callbacks: callbacks, current_module: module} = acc,
+         %{callbacks: callbacks, module: module} = acc,
          name,
          arity
        ) do

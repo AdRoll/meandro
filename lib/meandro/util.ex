@@ -39,4 +39,8 @@ defmodule Meandro.Util do
     |> Enum.map(&Task.async(fn -> fun.(&1) end))
     |> Enum.map(&Task.await/1)
   end
+
+  def ast_module_name_to_atom(aliases) do
+    aliases |> Enum.map(&Atom.to_string/1) |> Enum.join(".") |> String.to_atom()
+  end
 end
