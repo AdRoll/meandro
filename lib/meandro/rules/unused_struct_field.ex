@@ -20,6 +20,10 @@ defmodule Meandro.Rule.UnusedStructField do
   end
 
   @impl true
+  def is_ignored?(module, module) do
+    true
+  end
+
   def is_ignored?(_pattern, _ignore_spec) do
     false
   end
