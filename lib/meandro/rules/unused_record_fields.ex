@@ -13,7 +13,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
   @impl Meandro.Rule
   def analyze(files_and_asts, _options) do
     for {file, ast} <- files_and_asts,
-        result <- analyze_file(file, ast) do
+        result <- analyze_module(file, ast) do
       result
     end
   end
@@ -31,7 +31,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
     false
   end
 
-  defp analyze_file(file, ast) do
+  defp analyze_module(file, ast) do
     {_, acc} = Macro.prewalk(ast, %{module: nil, records: []}, &collect_record_info/2)
 
     for {module, name, _num_of_fields, unused_fields, line} <-
