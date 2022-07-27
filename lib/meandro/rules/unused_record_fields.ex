@@ -26,13 +26,13 @@ defmodule Meandro.Rule.UnusedRecordFields do
   defp analyze_file(file, ast) do
     {_, acc} = Macro.prewalk(ast, %{module: nil, records: []}, &collect_record_info/2)
 
-    for {module, name, _num_of_fields, unused_fields, line, scope} <- Enum.reverse(acc[:records]),
+    for {_module, name, _num_of_fields, unused_fields, line, scope} <- Enum.reverse(acc[:records]),
         unused_fields != [] do
       %Meandro.Rule{
         file: file,
         line: line,
         text:
-          "#{scope} record #{module}:#{name} has the following unused fields in the module: #{inspect(unused_fields)}",
+          "#{scope} record #{name} has the following unused fields in the module: #{inspect(unused_fields)}",
         pattern: :ok
       }
     end
@@ -51,19 +51,23 @@ defmodule Meandro.Rule.UnusedRecordFields do
          {{:., [line: line], aliases}, _, params} = ast,
          %{module: module, records: records} = acc
        ) do
-    scope =
-      case aliases do
-        [{:__aliases__, _, [:Record]}, :defrecord] ->
-          :Public
+    case aliases do
+      [{:__aliases__, _, [:Record]}, :defrecord] ->
+        [name, fields] = params
+        fields = for {field, _default_value} <- fields, do: field
+        record = {module, name, length(fields), fields, line, :Public}
+        {ast, %{acc | records: [record | records]}}
 
-        [{:__aliases__, _, [:Record]}, :defrecordp] ->
-          :Private
-      end
+      [{:__aliases__, _, [:Record]}, :defrecordp] ->
+        [name, fields] = params
+        fields = for {field, _default_value} <- fields, do: field
+        record = {module, name, length(fields), fields, line, :Private}
+        {ast, %{acc | records: [record | records]}}
 
-    [name, fields] = params
-    fields = for {field, _default_value} <- fields, do: field
-    record = {module, name, length(fields), fields, line, scope}
-    {ast, %{acc | records: [record | records]}}
+      _ ->
+        # not a record definition
+        {ast, acc}
+    end
   end
 
   # E.g.:
@@ -95,11 +99,10 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # E.g.:
   # {:{}, [line: _], [ {:__aliases__, [line: _], [:PrivRecord]}, {:variable, [line: _], nil}, {:variable, [line: _], nil}]}
   defp collect_record_info(
-         {:{}, [line: _], [aliases | args]} = ast,
+         {:{}, [line: _], [{:__aliases__, [line: _], [maybe_record_name]} | args]} = ast,
          %{module: module, records: records} = acc
-       ) do
-    {:__aliases__, [line: _], [maybe_record_name]} = aliases
-
+       )
+       when is_atom(maybe_record_name) do
     # Atoms like :PrivRecord are different than atoms like PrivRecord.
     # When calling Macro.underscore/1 on the latter, the string "priv_record" will be produced,
     # but when calling the function on the former, it will crash. Those atoms need to be
