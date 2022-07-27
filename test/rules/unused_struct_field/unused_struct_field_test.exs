@@ -18,8 +18,8 @@ defmodule MeandroTest.Rule.UnusedStructField do
 
   test "emits warnings on structs where all fields are unused" do
     files_and_asts = parse_files(["all_unused.exs"])
-    expected_text1 = "The field lat from the struct MeandroTest.MyBeh is unused"
-    expected_text2 = "The field long from the struct MeandroTest.MyBeh is unused"
+    expected_text1 = "The field lat from the struct MeandroTest.MyStructTest is unused"
+    expected_text2 = "The field long from the struct MeandroTest.MyStructTest is unused"
 
     assert [
              %Meandro.Rule{
@@ -37,7 +37,7 @@ defmodule MeandroTest.Rule.UnusedStructField do
 
   test "emits warnings on structs where at least one field is unused" do
     files_and_asts = parse_files(["one_unused.exs"])
-    expected_text = "The field lat from the struct MeandroTest.MyBeh is unused"
+    expected_text = "The field lat from the struct MeandroTest.MyStructTest is unused"
 
     assert [
              %Meandro.Rule{

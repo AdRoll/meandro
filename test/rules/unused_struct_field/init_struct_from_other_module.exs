@@ -1,5 +1,5 @@
-defmodule MeandroTest.MyTest do
+defmodule MeandroTest.MyStructTest do
   def test do
-    %MeandroTest.MyBeh{lat: 1.10, long: 2.10}
+    %MeandroTest.MyStructTest{lat: 1.10, long: 2.10}
   end
 end

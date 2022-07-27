@@ -1,12 +1,12 @@
-defmodule MeandroTest.MyBeh do
+defmodule MeandroTest.MyStructTest do
   defstruct [:lat, :long]
 
-  @type t :: %MeandroTest.MyBeh{
+  @type t :: %MeandroTest.MyStructTest{
           lat: float,
           long: float
         }
 
   defp test do
-    %MeandroTest.MyBeh{long: 2.11}
+    %MeandroTest.MyStructTest{long: 2.11}
   end
 end
