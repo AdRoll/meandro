@@ -29,6 +29,9 @@ defmodule Mix.Tasks.Meandro do
   use Mix.Task
 
   @rules [Meandro.Rule.UnusedStructField]
+  # @rules should have the following format
+  # [{:unused_callbacks, Meandro.Rule.UnusedCallbacks},
+  #  {:unused_struct_fields, Meandro.Rule.UnusedStructFields},...]
 
   # runs the task recursively in umbrella projects
   @recursive true
@@ -47,11 +50,11 @@ defmodule Mix.Tasks.Meandro do
 
     Mix.shell().info("Looking for oxbow lakes to dry up...")
     # TODO get all the rules dynamically
-    rules = @rules
+    rules = for {_rule, rule_mod} <- @rules, do: rule_mod
     Mix.shell().info("Meandro rules: #{inspect(rules)}")
 
     ## All files except those under _build or _checkouts
-    files = get_files(Keyword.get(parsed, :files), rest)
+    files = get_files(parsed[:files], rest)
 
     parsing_style =
       Keyword.get(parsed, :parsing, "parallel")

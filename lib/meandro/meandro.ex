@@ -1,17 +1,21 @@
 defmodule Meandro do
-  # @todo add docs and @moduledoc
   @moduledoc """
-  Documentation for `Meandro`.
+  The Elixir Dead Code Cleaner
   """
 
-  @doc """
-  Analyze
+  @typedoc """
+  Meandro's final result.
   """
-  @spec analyze([Path.t()], [module()], Meandro.Util.parsing_style()) :: %{
-          required(:results) => [Meandro.Rule.result()],
-          required(:unused_ignores) => [],
-          required(:stats) => %{atom() => integer()}
+  @type result() :: %{
+          results: [Meandro.Rule.result()],
+          unused_ignores: [],
+          stats: %{atom() => integer()}
         }
+
+  @doc """
+  Runs a list of rules over a list of files and returns all the dead code pieces it can find.
+  """
+  @spec analyze([Path.t()], [module()], Meandro.Util.parsing_style()) :: result()
   def analyze(files, rules, parsing_style) do
     files_and_asts = Meandro.Util.parse_files(files, parsing_style)
 

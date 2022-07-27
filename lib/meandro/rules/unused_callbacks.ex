@@ -11,7 +11,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
 
   @behaviour Meandro.Rule
 
-  @impl true
+  @impl Meandro.Rule
   def analyze(files_and_asts, _options) do
     for {file, ast} <- files_and_asts,
         result <- analyze_file(file, ast) do
@@ -19,7 +19,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
     end
   end
 
-  @impl true
+  @impl Meandro.Rule
   def is_ignored?({callback, arity}, {callback, arity}) do
     true
   end
@@ -33,48 +33,78 @@ defmodule Meandro.Rule.UnusedCallbacks do
   end
 
   defp analyze_file(file, ast) do
-    {_, callbacks} = Macro.prewalk(ast, [], &collect_callbacks/2)
+    {_, acc} = Macro.prewalk(ast, %{current_module: nil, callbacks: []}, &collect_callbacks/2)
+    %{callbacks: callbacks} = acc
 
-    for {name, arity, line} <- callbacks, is_unused?(name, arity, ast) do
+    for {module, name, arity, line, count} <- callbacks, count == 0 do
       %Meandro.Rule{
         file: file,
         line: line,
-        text: "Callback #{name}/#{arity} is not used anywhere in the module",
+        text: "Callback #{module}:#{name}/#{arity} is not used anywhere in the module",
         pattern: {name, arity}
       }
     end
   end
 
-  defp collect_callbacks({:callback, _, _} = callback, acc),
-    do: {callback, [parse(callback) | acc]}
+  # When we find a module definition we write it down, so we can pair it with the callback definition
+  defp collect_callbacks(
+         {:defmodule, [line: _], [{:__aliases__, [line: _], aliases}, _other]} = ast,
+         acc
+       ) do
+    module_name = aliases |> Enum.map_join(".", &Atom.to_string/1) |> String.to_atom()
 
-  defp collect_callbacks(other, acc), do: {other, acc}
-
-  defp parse({:callback, meta, [{:"::", _, [definition, _result]}]}) do
-    line = Keyword.get(meta, :line, 0)
-    {name, _, params} = definition
-    {name, length(params), line}
+    {ast, %{acc | current_module: module_name}}
   end
 
-  defp is_unused?(name, arity, ast) do
-    {_, count} = Macro.prewalk(ast, 0, fn node, acc -> count_calls(name, arity, node, acc) end)
-    count == 0
+  # When we find a callback, we write it down together with the module it was found on.
+  # We also count the number of times a module:callback/arity has been found whilst traversing
+  # the AST.
+  defp collect_callbacks(
+         {:callback, _, _} = callback,
+         %{current_module: module, callbacks: callbacks} = acc
+       ) do
+    {name, arity, line} = parse(callback)
+
+    {callback, %{acc | callbacks: [{module, name, arity, line, 0} | callbacks]}}
   end
 
   # Standard function application: SOMETHING.name(params) with the right number of params
-  defp count_calls(name, arity, {{:., _, [_, name]}, _, params} = node, acc)
-       when length(params) == arity,
-       do: {node, acc + 1}
+  defp collect_callbacks({{:., _, [_, name]}, _, params} = node, acc) do
+    {node, maybe_update_callback_count(acc, name, _arity = length(params))}
+  end
 
   # Function references: &SOMETHING.name/arity
-  defp count_calls(
-         name,
-         arity,
+  defp collect_callbacks(
          {:&, _, [{:/, _, [{{:., _, [_, name]}, _, []}, arity]}]} = node,
          acc
-       ),
-       do: {node, acc + 1}
+       ) do
+    {node, maybe_update_callback_count(acc, name, arity)}
+  end
 
-  # All other nodes
-  defp count_calls(_, _, node, acc), do: {node, acc}
+  defp collect_callbacks(other, acc), do: {other, acc}
+
+  defp maybe_update_callback_count(
+         %{callbacks: callbacks, current_module: module} = acc,
+         name,
+         arity
+       ) do
+    callbacks =
+      Enum.map(callbacks, fn
+        {^module, ^name, ^arity, line, count} -> {module, name, arity, line, count + 1}
+        e -> e
+      end)
+
+    %{acc | callbacks: callbacks}
+  end
+
+  defp parse({:callback, meta, [{:"::", _, [definition, _result]}]}) do
+    line = meta[:line]
+    {name, _meta, params} = definition
+
+    if is_nil(params) do
+      {name, 0, line}
+    else
+      {name, length(params), line}
+    end
+  end
 end
