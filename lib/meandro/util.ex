@@ -2,9 +2,6 @@ defmodule Meandro.Util do
   @moduledoc """
   Utilitary functions for the library as a whole
   """
-  # the IO.read/2 option changed from :all to :eof in Elixir 1.13
-  # so Dialyzer doesn't like the old backwards compatibility mode in 1.13+
-  @dialyzer {:no_fail_call, {:parse_files, 2}}
 
   @typedoc """
   parsing_style will instruct Meandro to compute the rules in parallel or sequentially.
@@ -33,8 +30,7 @@ defmodule Meandro.Util do
 
   defp file_to_ast(file) do
     file
-    |> File.open!()
-    |> IO.read(:all)
+    |> File.read!()
     |> Code.string_to_quoted!()
     |> maybe_split_by_module(file)
   end
