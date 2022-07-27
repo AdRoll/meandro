@@ -13,8 +13,9 @@ defmodule Meandro.Rule.UnusedCallbacks do
 
   @impl Meandro.Rule
   def analyze(files_and_asts, _options) do
-    for {file, ast} <- files_and_asts,
-        result <- analyze_file(file, ast) do
+    for {file, module_asts} <- files_and_asts,
+        {_module_name, ast} <- module_asts,
+        result <- analyze_module(file, ast) do
       result
     end
   end
@@ -32,7 +33,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
     false
   end
 
-  defp analyze_file(file, ast) do
+  defp analyze_module(file, ast) do
     {_, acc} = Macro.prewalk(ast, %{current_module: nil, callbacks: []}, &collect_callbacks/2)
     %{callbacks: callbacks} = acc
 
@@ -48,12 +49,10 @@ defmodule Meandro.Rule.UnusedCallbacks do
 
   # When we find a module definition we write it down, so we can pair it with the callback definition
   defp collect_callbacks(
-         {:defmodule, [line: _], [{:__aliases__, [line: _], aliases}, _other]} = ast,
+         {:defmodule, _, _} = ast,
          acc
        ) do
-    module_name = aliases |> Enum.map_join(".", &Atom.to_string/1) |> String.to_atom()
-
-    {ast, %{acc | current_module: module_name}}
+    {ast, %{acc | current_module: Meandro.Util.module_name(ast)}}
   end
 
   # When we find a callback, we write it down together with the module it was found on.
