@@ -1,7 +1,12 @@
-defmodule Meandro.Rules.UnusedRecordFields do
+defmodule Meandro.Rule.UnusedRecordFields do
   @moduledoc """
-  Finds instances where a record has fields defined that are not used
+  Finds instances where a record has fields defined that are not being used.
+
+  This rule assumes that your code will never use the underlying tuple
+  structure of your records directly.
   """
+
+  alias Meandro.Util
 
   @behaviour Meandro.Rule
 
@@ -18,36 +23,129 @@ defmodule Meandro.Rules.UnusedRecordFields do
     false
   end
 
-  defp analyze_file(_file, ast) do
-    record_info(ast)
-    |> IO.inspect(label: "analyze file")
+  defp analyze_file(file, ast) do
+    {_, acc} = Macro.prewalk(ast, %{module: nil, records: []}, &collect_record_info/2)
+
+    for {module, name, _num_of_fields, unused_fields, line, scope} <- Enum.reverse(acc[:records]),
+        unused_fields != [] do
+      %Meandro.Rule{
+        file: file,
+        line: line,
+        text:
+          "#{scope} record #{module}:#{name} has the following unused fields in the module: #{inspect(unused_fields)}",
+        pattern: :ok
+      }
+    end
   end
 
-  defp record_info(ast) do
-    {_, record_info} = Macro.prewalk(ast, %Meandro.Rule{}, &collect_record_info/2)
-    record_info
+  defp collect_record_info(
+         {:defmodule, [line: _], [{:__aliases__, [line: _], aliases}, _other]} = ast,
+         acc
+       ) do
+    module_name = Util.ast_module_name_to_atom(aliases)
+    acc = %{acc | module: module_name}
+    {ast, acc}
   end
 
-  defp collect_record_info({:defmodule, [line: _], [{:__aliases__, [line: _], aliases}, _other]} = ast, record_info) do
-    IO.inspect(record_info, label: "record info")
-    module_name = aliases |> Enum.map(&Atom.to_string/1) |> Enum.join(".") |> String.to_atom()
-    record_info = %{record_info | module_name: module_name}
-    {ast, record_info}
+  defp collect_record_info(
+         {{:., [line: line], aliases}, _, params} = ast,
+         %{module: module, records: records} = acc
+       ) do
+    scope =
+      case aliases do
+        [{:__aliases__, _, [:Record]}, :defrecord] ->
+          :Public
+
+        [{:__aliases__, _, [:Record]}, :defrecordp] ->
+          :Private
+      end
+
+    [name, fields] = params
+    fields = for {field, _default_value} <- fields, do: field
+    record = {module, name, length(fields), fields, line, scope}
+    {ast, %{acc | records: [record | records]}}
   end
 
-  defp collect_record_info({:defrecord, [line: _], [fields]} = ast, record_info) do
-    record_info = %{record_info | fields: fields}
-    {ast, record_info}
+  # E.g.:
+  # {:{}, [line: 11], [:priv_record, {:variable, [line: 11], nil}, {:variable, [line: 11], nil}]}
+  defp collect_record_info(
+         {:{}, [line: _], [maybe_record_name | args]} = ast,
+         %{module: module, records: records} = acc
+       )
+       when is_atom(maybe_record_name) do
+    case List.keyfind(records, maybe_record_name, 1, :not_found) do
+      :not_found ->
+        # it wasn't a record?
+        {ast, acc}
+
+      {^module, ^maybe_record_name, num_of_fields, _fields, line, scope}
+      when num_of_fields == length(args) ->
+        record = {module, maybe_record_name, num_of_fields, [], line, scope}
+        new_records = List.keyreplace(records, maybe_record_name, 1, record)
+        {ast, %{acc | records: new_records}}
+
+      {^module, ^maybe_record_name, _num_of_fields, _fields, _line, _scope} ->
+        # this is a record with the same name, but different number of arguments,
+        # so an edge-case I don't know how to handle (this would create a different "record" than
+        # the one defined we know about)
+        {ast, acc}
+    end
   end
 
-  defp collect_record_info({:defrecordp, [line: _], [fields]} = ast, record_info) do
-    record_info = %{record_info | fields: fields}
-    {ast, record_info}
+  # E.g.:
+  # {:{}, [line: _], [ {:__aliases__, [line: _], [:PrivRecord]}, {:variable, [line: _], nil}, {:variable, [line: _], nil}]}
+  defp collect_record_info(
+         {:{}, [line: _], [aliases | args]} = ast,
+         %{module: module, records: records} = acc
+       ) do
+    {:__aliases__, [line: _], [maybe_record_name]} = aliases
+
+    # Atoms like :PrivRecord are different than atoms like PrivRecord.
+    # When calling Macro.underscore/1 on the latter, the string "priv_record" will be produced,
+    # but when calling the function on the former, it will crash. Those atoms need to be
+    # converted to strings (which are produced such as "Elixir.PrivRecord") and then passed
+    # to Macro.underscore/1 to obtain the same string as with the latter
+    maybe_record_name =
+      maybe_record_name
+      |> Atom.to_string()
+      |> String.trim_leading("Elixir.")
+      |> Macro.underscore()
+      |> String.to_atom()
+
+    case List.keyfind(records, maybe_record_name, 1, :not_found) do
+      :not_found ->
+        # it wasn't a record
+        {ast, acc}
+
+      {^module, ^maybe_record_name, num_of_fields, _fields, line, scope}
+      when num_of_fields == length(args) ->
+        record = {module, maybe_record_name, num_of_fields, [], line, scope}
+        new_records = List.keyreplace(records, maybe_record_name, 1, record)
+        {ast, %{acc | records: new_records}}
+
+      {^module, ^maybe_record_name, _num_of_fields, _fields, _line, _scope} ->
+        # this is a record with the same name, but different number of arguments,
+        # so an edge-case I don't know how to handle (this would create a different "record" than
+        # the one defined we know about)
+        {ast, acc}
+    end
   end
 
-  defp collect_record_info(other, module_name) do
-    IO.inspect(other, label: "other")
-    # IO.puts(header)
-    {other, module_name}
+  # E.g.: record_name(record_variable, :record_field)
+  defp collect_record_info(
+         {record_name, [line: _], [{:record, _, _}, field]} = ast,
+         %{records: records} = acc
+       )
+       when is_atom(record_name) and is_atom(field) do
+    {module, ^record_name, num_of_fields, fields, line, scope} =
+      List.keyfind(records, record_name, 1)
+
+    record = {module, record_name, num_of_fields, fields -- [field], line, scope}
+    new_records = List.keyreplace(records, record_name, 1, record)
+    {ast, %{acc | records: new_records}}
+  end
+
+  defp collect_record_info(other, acc) do
+    {other, acc}
   end
 end
