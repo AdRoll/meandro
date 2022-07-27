@@ -1,5 +1,4 @@
 defmodule MeandroTest.MyBeh do
-
   defstruct [:lat, :long]
 
   @type t :: %MeandroTest.MyBeh{
