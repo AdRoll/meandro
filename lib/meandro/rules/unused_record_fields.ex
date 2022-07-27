@@ -19,6 +19,14 @@ defmodule Meandro.Rule.UnusedRecordFields do
   end
 
   @impl Meandro.Rule
+  def is_ignored?({module, record, fields}, {module, record, fields}) do
+    true
+  end
+
+  def is_ignored?({_module, record, _fields}, record) do
+    true
+  end
+
   def is_ignored?(_pattern, _ignore_spec) do
     false
   end

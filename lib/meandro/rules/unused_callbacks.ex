@@ -26,7 +26,6 @@ defmodule Meandro.Rule.UnusedCallbacks do
     true
   end
 
-  # @todo revisit this
   def is_ignored?({_module, callback, _arity}, callback) do
     true
   end
