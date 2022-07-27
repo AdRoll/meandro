@@ -22,11 +22,12 @@ defmodule Meandro.Rule.UnusedCallbacks do
   end
 
   @impl Meandro.Rule
-  def is_ignored?({callback, arity}, {callback, arity}) do
+  def is_ignored?({module, callback, arity}, {module, callback, arity}) do
     true
   end
 
-  def is_ignored?({callback, _arity}, callback) do
+  # @todo revisit this
+  def is_ignored?({_module, callback, _arity}, callback) do
     true
   end
 
@@ -43,7 +44,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
         file: file,
         line: line,
         text: "Callback #{module}:#{name}/#{arity} is not used anywhere in the module",
-        pattern: {name, arity}
+        pattern: {module, name, arity}
       }
     end
   end

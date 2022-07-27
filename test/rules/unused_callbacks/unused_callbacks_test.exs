@@ -26,7 +26,7 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
              %Meandro.Rule{
                file: @test_directory_path <> "bad.exs",
                line: 5,
-               pattern: {:unused, 0},
+               pattern: {^module, :unused, 0},
                rule: Meandro.Rule.UnusedCallbacks,
                text: ^expected_text
              }
@@ -43,7 +43,7 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
              %Meandro.Rule{
                file: @test_directory_path <> "bad.exs",
                line: 5,
-               pattern: {:unused, 0},
+               pattern: {^module, :unused, 0},
                rule: Meandro.Rule.UnusedCallbacks,
                text: ^expected_text
              }
@@ -62,5 +62,6 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
     Regex.scan(pattern, contents, capture: :all_but_first)
     |> List.flatten()
     |> List.first()
+    |> String.to_atom()
   end
 end
