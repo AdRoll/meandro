@@ -28,7 +28,7 @@ defmodule Mix.Tasks.Meandro do
   """
   use Mix.Task
 
-  @rules [Meandro.Rule.UnusedStructField]
+  @rules []
   # @rules should have the following format
   # [{:unused_callbacks, Meandro.Rule.UnusedCallbacks},
   #  {:unused_struct_fields, Meandro.Rule.UnusedStructFields},...]

@@ -7,11 +7,10 @@ defmodule Meandro.Rule.UnusedStructField do
 
   @impl true
   def analyze(files_and_asts, _options) do
-    IO.inspect(for {file, ast} <- files_and_asts,
+    List.flatten(for {file, ast} <- files_and_asts,
         result <- analyze_module(file, ast, files_and_asts) do
       result
     end)
-
   end
 
   @impl true
@@ -29,14 +28,13 @@ defmodule Meandro.Rule.UnusedStructField do
 
   defp analyze_module(file, ast, files_and_asts) do
     struct_info = struct_info(ast)
-    case Kernel.map_size(struct_info) do
-      0 ->
+    case Map.get(struct_info, :fields) do
+      nil ->
         []
-      _ ->
-        fields = Map.get(struct_info, :fields)
+      fields ->
         module_name = Map.get(struct_info, :module_name)
         module_aliases = Map.get(struct_info, :module_aliases)
-        List.flatten(for field <- fields do
+        for field <- fields do
           unused = is_unused({field, module_name, module_aliases}, files_and_asts)
           case unused do
             true ->
@@ -44,7 +42,7 @@ defmodule Meandro.Rule.UnusedStructField do
             false ->
               []
           end
-        end)
+        end
     end
   end
 
@@ -118,8 +116,6 @@ defmodule Meandro.Rule.UnusedStructField do
   end
 
   defp is_unused_in_ast(other, {result, {field, module, aliases}}) do
-    # IO.inspect(other)
-    # IO.puts("-----------NEXT_LINE---------------")
     {other, {result, {field, module, aliases}}}
   end
 

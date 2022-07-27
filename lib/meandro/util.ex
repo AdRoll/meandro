@@ -49,6 +49,10 @@ defmodule Meandro.Util do
     {function, [function | functions]}
   end
 
+  defp get_functions({:defp, _, _} = function, functions) do
+    {function, [function | functions]}
+  end
+
   defp get_functions(ast, functions) do
     {ast, functions}
   end
