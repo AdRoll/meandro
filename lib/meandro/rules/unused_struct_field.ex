@@ -75,14 +75,10 @@ defmodule Meandro.Rule.UnusedStructField do
         end
       end
 
-    unused = Enum.all?(unused_in_functions)
-
-    case unused do
-      true ->
-        is_unused?({field, module, aliases}, tl)
-
-      false ->
-        false
+    if Enum.all?(unused_in_functions) do
+      is_unused?({field, module, aliases}, tl)
+    else
+      false
     end
   end
 
