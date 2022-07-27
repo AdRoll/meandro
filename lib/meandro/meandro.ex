@@ -21,6 +21,7 @@ defmodule Meandro do
 
     results =
       for rule_mod <- rules, do: Meandro.Rule.analyze(rule_mod, files_and_asts, :nocontext)
+
     %{
       results: results,
       unused_ignores: [],
