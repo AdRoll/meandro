@@ -6,7 +6,7 @@ defmodule MeandroTest.MyBeh do
           long: float
         }
 
-  def test() do
+  def test do
     unit = %MeandroTest.MyBeh{lat: 1.1, long: 2.1}
   end
 end

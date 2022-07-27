@@ -6,7 +6,7 @@ defmodule MeandroTest.MyBeh do
           long: float
         }
 
-  defp test() do
+  defp test do
     %MeandroTest.MyBeh{long: 2.11}
   end
 end

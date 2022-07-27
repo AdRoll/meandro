@@ -6,7 +6,7 @@ defmodule MeandroTest.MyBeh do
           long: float
         }
 
-  defp test() do
+  defp test do
     st = %MeandroTest.MyBeh{}
     latitude = st.lat
     longitude = st.long

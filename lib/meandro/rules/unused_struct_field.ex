@@ -126,7 +126,7 @@ defmodule Meandro.Rule.UnusedStructField do
          {:defmodule, [line: _], [{:__aliases__, [line: _], aliases}, _other]} = ast,
          struct_info
        ) do
-    module_name = aliases |> Enum.map(&Atom.to_string/1) |> Enum.join(".") |> String.to_atom()
+    module_name = aliases |> Enum.map_join(".", &Atom.to_string/1) |> String.to_atom()
 
     struct_info =
       struct_info
