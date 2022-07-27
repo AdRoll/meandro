@@ -72,7 +72,7 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
   end
 
   defp read_module_name(file_path) do
-    {:ok, contents} = File.read("test/rules/unused_callbacks/" <> file_path)
+    {:ok, contents} = File.read(@test_directory_path <> file_path)
     pattern = ~r{defmodule \s+ ([^\s]+) }x
 
     Regex.scan(pattern, contents, capture: :all_but_first)

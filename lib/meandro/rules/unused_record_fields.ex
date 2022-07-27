@@ -26,15 +26,17 @@ defmodule Meandro.Rule.UnusedRecordFields do
   defp analyze_file(file, ast) do
     {_, acc} = Macro.prewalk(ast, %{module: nil, records: []}, &collect_record_info/2)
 
-    for {_module, name, _num_of_fields, unused_fields, line, scope} <-
+    for {module, name, _num_of_fields, unused_fields, line} <-
           Enum.reverse(acc[:records]),
         unused_fields != [] do
+      camel_name = name |> Atom.to_string() |> Macro.camelize()
+
       %Meandro.Rule{
         file: file,
         line: line,
         text:
-          "#{scope} record #{name} has the following unused fields in the module: #{inspect(unused_fields)}",
-        pattern: :ok
+          "Record :#{name} (#{camel_name}) has the following unused fields in the module: #{inspect(unused_fields)}",
+        pattern: {module, name, unused_fields}
       }
     end
   end
@@ -53,16 +55,10 @@ defmodule Meandro.Rule.UnusedRecordFields do
          %{module: module, records: records} = acc
        ) do
     case aliases do
-      [{:__aliases__, _, [:Record]}, :defrecord] ->
+      [{:__aliases__, _, [:Record]}, record_def] when record_def in [:defrecord, :defrecordp] ->
         [name, fields] = params
         fields = for {field, _default_value} <- fields, do: field
-        record = {module, name, length(fields), fields, line, :Public}
-        {ast, %{acc | records: [record | records]}}
-
-      [{:__aliases__, _, [:Record]}, :defrecordp] ->
-        [name, fields] = params
-        fields = for {field, _default_value} <- fields, do: field
-        record = {module, name, length(fields), fields, line, :Private}
+        record = {module, name, length(fields), fields, line}
         {ast, %{acc | records: [record | records]}}
 
       _ ->
@@ -83,13 +79,13 @@ defmodule Meandro.Rule.UnusedRecordFields do
         # it wasn't a record?
         {ast, acc}
 
-      {^module, ^maybe_record_name, num_of_fields, _fields, line, scope}
+      {^module, ^maybe_record_name, num_of_fields, _fields, line}
       when num_of_fields == length(args) ->
-        record = {module, maybe_record_name, num_of_fields, [], line, scope}
+        record = {module, maybe_record_name, num_of_fields, [], line}
         new_records = List.keyreplace(records, maybe_record_name, 1, record)
         {ast, %{acc | records: new_records}}
 
-      {^module, ^maybe_record_name, _num_of_fields, _fields, _line, _scope} ->
+      {^module, ^maybe_record_name, _num_of_fields, _fields, _line} ->
         # this is a record with the same name, but different number of arguments,
         # so an edge-case I don't know how to handle (this would create a different "record" than
         # the one defined we know about)
@@ -121,13 +117,13 @@ defmodule Meandro.Rule.UnusedRecordFields do
         # it wasn't a record
         {ast, acc}
 
-      {^module, ^maybe_record_name, num_of_fields, _fields, line, scope}
+      {^module, ^maybe_record_name, num_of_fields, _fields, line}
       when num_of_fields == length(args) ->
-        record = {module, maybe_record_name, num_of_fields, [], line, scope}
+        record = {module, maybe_record_name, num_of_fields, [], line}
         new_records = List.keyreplace(records, maybe_record_name, 1, record)
         {ast, %{acc | records: new_records}}
 
-      {^module, ^maybe_record_name, _num_of_fields, _fields, _line, _scope} ->
+      {^module, ^maybe_record_name, _num_of_fields, _fields, _line} ->
         # this is a record with the same name, but different number of arguments,
         # so an edge-case I don't know how to handle (this would create a different "record" than
         # the one defined we know about)
@@ -141,10 +137,9 @@ defmodule Meandro.Rule.UnusedRecordFields do
          %{records: records} = acc
        )
        when is_atom(record_name) and is_atom(field) do
-    {module, ^record_name, num_of_fields, fields, line, scope} =
-      List.keyfind(records, record_name, 1)
+    {module, ^record_name, num_of_fields, fields, line} = List.keyfind(records, record_name, 1)
 
-    record = {module, record_name, num_of_fields, fields -- [field], line, scope}
+    record = {module, record_name, num_of_fields, fields -- [field], line}
     new_records = List.keyreplace(records, record_name, 1, record)
     {ast, %{acc | records: new_records}}
   end
