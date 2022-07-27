@@ -1,6 +1,8 @@
 defmodule Meandro.Rule.UnusedStructField do
   @moduledoc """
-  Finds callbacks that aren't being used
+  Finds struct fields that are not used.
+  It has the following assumptions:
+    - As we are not tracking the value of each variable and a variable can be reassigned we don't check the struct name when looking for access to an struct field or modification
   """
 
   @behaviour Meandro.Rule
@@ -32,7 +34,7 @@ defmodule Meandro.Rule.UnusedStructField do
         module_aliases = Map.get(struct_info, :module_aliases)
 
         for field <- fields do
-          unused = is_unused({field, module_name, module_aliases}, files_and_asts)
+          unused = is_unused?({field, module_name, module_aliases}, files_and_asts)
 
           case unused do
             true ->
@@ -49,18 +51,18 @@ defmodule Meandro.Rule.UnusedStructField do
     end
   end
 
-  defp is_unused({_field, _module, _aliases}, []) do
+  defp is_unused?({_field, _module, _aliases}, []) do
     true
   end
 
-  defp is_unused({field, module, aliases}, [{_file, ast} | tl]) do
+  defp is_unused?({field, module, aliases}, [{_file, ast} | tl]) do
     functions = Meandro.Util.functions(ast)
 
     unused_in_functions =
       for function <- functions do
         case Macro.prewalk(function, {true, {field, module, aliases}}, &is_unused_in_ast/2) do
           {_, {true, _}} ->
-            is_unused({field, module, aliases}, tl)
+            is_unused?({field, module, aliases}, tl)
 
           {_, {false, _}} ->
             false
@@ -71,7 +73,7 @@ defmodule Meandro.Rule.UnusedStructField do
 
     case unused do
       true ->
-        is_unused({field, module, aliases}, tl)
+        is_unused?({field, module, aliases}, tl)
 
       false ->
         false
