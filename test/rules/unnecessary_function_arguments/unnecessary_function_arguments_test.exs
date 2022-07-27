@@ -43,7 +43,7 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
     files_and_asts = parse_files([file])
 
     assert ^expected_results =
-             Rule.analyze(UnnecessaryFunctionArguments, files_and_asts, :nocontext)
+             Enum.sort(Rule.analyze(UnnecessaryFunctionArguments, files_and_asts, :nocontext))
   end
 
   defp parse_files(paths) do

@@ -14,8 +14,8 @@ defmodule MeandroTest.UFA.Bad do
   def also_ignore(_, _), do: "All arguments ignored in this clause"
 
   @doc "Private function"
-  defp private(:function, _with, _two, :args, :ignored) do
-    {2, :args, :are, :ignored}
+  defp private("function", _with, _two, :args, {:ignored, ignored}) do
+    {2, :args, :are, ignored}
   end
 
   defp private(:second_clause, _with, _more, _ignored, _args) do
