@@ -15,7 +15,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
   def analyze(files_and_asts, _options) do
     for {file, module_asts} <- files_and_asts,
         {_module_name, ast} <- module_asts,
-        result <- analyze_file(file, ast) do
+        result <- analyze_module(file, ast) do
       result
     end
   end
@@ -33,7 +33,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
     false
   end
 
-  defp analyze_file(file, ast) do
+  defp analyze_module(file, ast) do
     {_, acc} = Macro.prewalk(ast, %{current_module: nil, callbacks: []}, &collect_callbacks/2)
     %{callbacks: callbacks} = acc
 
