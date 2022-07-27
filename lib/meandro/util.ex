@@ -32,4 +32,17 @@ defmodule Meandro.Util do
     |> Enum.map(&Task.async(fn -> fun.(&1) end))
     |> Enum.map(&Task.await/1)
   end
+
+  def functions(ast) do
+    {_, functions} = Macro.prewalk(ast, [], &get_functions/2)
+    functions
+  end
+
+  defp get_functions({:def, _, _} = function, functions) do
+    {function, [function | functions]}
+  end
+
+  defp get_functions(ast, functions) do
+    {ast, functions}
+  end
 end
