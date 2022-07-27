@@ -16,11 +16,12 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
     assert [] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
   end
 
-  test "emits warnings on files where a callback is unused" do
+  test "emits warnings on files where a callback is unused, and the warnings are sorted" do
     file = "bad.exs"
     module = read_module_name(file)
     files_and_asts = parse_files([file])
-    expected_text = "Callback #{module}:unused/0 is not used anywhere in the module"
+    expected_text1 = "Callback #{module}:unused/0 is not used anywhere in the module"
+    expected_text2 = "Callback #{module}:unused_too/0 is not used anywhere in the module"
 
     assert [
              %Meandro.Rule{
@@ -28,7 +29,14 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
                line: 5,
                pattern: {^module, :unused, 0},
                rule: Meandro.Rule.UnusedCallbacks,
-               text: ^expected_text
+               text: ^expected_text1
+             },
+             %Meandro.Rule{
+               file: @test_directory_path <> "bad.exs",
+               line: 6,
+               pattern: {^module, :unused_too, 0},
+               rule: Meandro.Rule.UnusedCallbacks,
+               text: ^expected_text2
              }
            ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
   end
@@ -37,7 +45,8 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
     bad_file = "bad.exs"
     module = read_module_name("bad.exs")
     files_and_asts = parse_files(["none.exs", "good.exs", bad_file])
-    expected_text = "Callback #{module}:unused/0 is not used anywhere in the module"
+    expected_text1 = "Callback #{module}:unused/0 is not used anywhere in the module"
+    expected_text2 = "Callback #{module}:unused_too/0 is not used anywhere in the module"
 
     assert [
              %Meandro.Rule{
@@ -45,7 +54,14 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
                line: 5,
                pattern: {^module, :unused, 0},
                rule: Meandro.Rule.UnusedCallbacks,
-               text: ^expected_text
+               text: ^expected_text1
+             },
+             %Meandro.Rule{
+               file: @test_directory_path <> "bad.exs",
+               line: 6,
+               pattern: {^module, :unused_too, 0},
+               rule: Meandro.Rule.UnusedCallbacks,
+               text: ^expected_text2
              }
            ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
   end

@@ -39,7 +39,7 @@ defmodule Meandro.Rule.UnusedCallbacks do
     {_, acc} = Macro.prewalk(ast, %{module: nil, callbacks: []}, &collect_callbacks/2)
     %{callbacks: callbacks} = acc
 
-    for {module, name, arity, line, count} <- callbacks, count == 0 do
+    for {module, name, arity, line, count} <- Enum.reverse(callbacks), count == 0 do
       %Meandro.Rule{
         file: file,
         line: line,
