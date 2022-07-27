@@ -36,8 +36,8 @@ defmodule Meandro.Rule.UnusedStructField do
         []
 
       fields ->
-        module_name = Map.get(struct_info, :module_name)
-        module_aliases = Map.get(struct_info, :module_aliases)
+        module_name = struct_info[:module_name]
+        module_aliases = struct_info[:module_aliases]
 
         for field <- fields do
           unused = is_unused?({field, module_name, module_aliases}, files_and_asts)
