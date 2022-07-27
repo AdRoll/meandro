@@ -102,7 +102,7 @@ defmodule Meandro.Rule.UnusedStructField do
          {result, {field, module, aliases}}
        ) do
     result =
-      case List.keyfind(field_list, field, 0, nil) do
+      case List.keyfind(field_list, field, 0) do
         nil -> result
         _ -> false
       end
