@@ -19,7 +19,8 @@ defmodule Meandro.Util do
           {Path.t(), [{atom(), Macro.t()}]}
         ]
   def parse_files(paths, :sequential) do
-    Enum.map(paths, &file_to_ast/1)
+    paths
+    |> Enum.map(&file_to_ast/1)
     |> List.flatten()
   end
 
