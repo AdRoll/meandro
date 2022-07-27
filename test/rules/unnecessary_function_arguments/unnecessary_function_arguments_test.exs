@@ -42,7 +42,7 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
 
     files_and_asts = parse_files([file])
 
-    assert expected_results =
+    assert ^expected_results =
              Rule.analyze(UnnecessaryFunctionArguments, files_and_asts, :nocontext)
   end
 
