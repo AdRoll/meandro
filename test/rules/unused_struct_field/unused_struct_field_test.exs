@@ -63,6 +63,25 @@ defmodule MeandroTest.Rule.UnusedStructField do
     assert [] = Rule.analyze(UnusedStructField, files_and_asts, :nocontext)
   end
 
+  describe "the struct is only used to pattern match a function header" do
+    test "emits no warnings when all fields are used in a pattern match" do
+      files_and_asts = parse_files(["pattern_match_good.exs"])
+      assert [] = Rule.analyze(UnusedStructField, files_and_asts, :nocontext)
+    end
+
+    test "emits a warning when a field is unused in a pattern match" do
+      expected_text = "The field long from the struct MeandroTest.MyStructTest is unused"
+      files_and_asts = parse_files(["pattern_match_bad.exs"])
+      assert [
+        %Meandro.Rule{
+          file: @test_directory_path <> "pattern_match_bad.exs",
+          rule: Meandro.Rule.UnusedStructField,
+          text: ^expected_text
+        }
+      ] = Rule.analyze(UnusedStructField, files_and_asts, :nocontext)
+    end
+  end
+
   defp parse_files(paths) do
     files = for p <- paths, do: @test_directory_path <> p
     Meandro.Util.parse_files(files, :sequential)
