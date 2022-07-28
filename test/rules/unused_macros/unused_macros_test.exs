@@ -26,11 +26,25 @@ defmodule MeandroTest.Rule.UnusedMacrosTest do
 
     assert [
              %Meandro.Rule{
-               file: "test/rules/unused_macros/one_unused.exs",
+               file: @test_directory_path <> "one_unused.exs",
                line: 2,
-               pattern: {:"MeandroTest.MyMacroTest", :macro_a},
+               pattern: {:macro_a, 0},
                rule: Meandro.Rule.UnusedMacros,
-               text: "The macro macro_a is unused"
+               text: "The macro macro_a with arity 0 is unused"
+             }
+           ] = Rule.analyze(UnusedMacros, files_and_asts, :nocontext)
+  end
+
+  test "emits warnings on files where there are several macros with the same name and different arity and one of them is not used" do
+    files_and_asts = parse_files(["different_arity.exs"])
+
+    assert [
+             %Meandro.Rule{
+               file: @test_directory_path <> "different_arity.exs",
+               line: 14,
+               pattern: {:macro_a, 2},
+               rule: Meandro.Rule.UnusedMacros,
+               text: "The macro macro_a with arity 2 is unused"
              }
            ] = Rule.analyze(UnusedMacros, files_and_asts, :nocontext)
   end

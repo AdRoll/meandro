@@ -16,7 +16,7 @@ defmodule Meandro.Rule.UnusedMacros do
   end
 
   @impl Meandro.Rule
-  def is_ignored?({module, macro}, {module, macro}) do
+  def is_ignored?({macro, arity}, {macro, arity}) do
     true
   end
 
@@ -32,15 +32,15 @@ defmodule Meandro.Rule.UnusedMacros do
       unused = is_unused?(macro_info, files_and_asts)
       macro = macro_info |> Map.get(:name)
       line = macro_info |> Map.get(:line)
-      module = macro_info |> Map.get(:module)
+      arity = macro_info |> Map.get(:arity)
 
       if unused do
         %Meandro.Rule{
           file: file,
           rule: __MODULE__,
           line: line,
-          pattern: {module, macro},
-          text: "The macro #{macro} is unused"
+          pattern: {macro, arity},
+          text: "The macro #{macro} with arity #{arity} is unused"
         }
       else
         []
@@ -56,10 +56,11 @@ defmodule Meandro.Rule.UnusedMacros do
     functions = Meandro.Util.functions(ast)
     macro = macro_info |> Map.get(:name)
     aliases = macro_info |> Map.get(:aliases)
+    arity = macro_info |> Map.get(:arity)
 
     unused_in_functions =
       for function <- functions do
-        case Macro.prewalk(function, {true, {macro, aliases}}, &is_unused_in_ast/2) do
+        case Macro.prewalk(function, {true, {macro, aliases, arity}}, &is_unused_in_ast/2) do
           {_, {true, _}} ->
             is_unused?(macro_info, tl)
 
@@ -75,23 +76,25 @@ defmodule Meandro.Rule.UnusedMacros do
     end
   end
 
-  defp is_unused_in_ast(ast, {false, macro_info}) do
-    {ast, {false, macro_info}}
-  end
-
   defp is_unused_in_ast(
          {:., _, [{:__aliases__, _, aliases}, macro]} = ast,
-         {_result, {macro, aliases}}
+         {_result, {macro, aliases, arity}}
        ) do
-    {ast, {false, {macro, aliases}}}
+    {ast, {false, {macro, aliases, arity}}}
   end
 
-  defp is_unused_in_ast({macro, _, _} = ast, {_result, {macro, aliases}}) do
-    {ast, {false, {macro, aliases}}}
+  defp is_unused_in_ast({macro, _, args} = ast, {result, {macro, aliases, expected_arity}}) do
+    found_arity = arity(args)
+
+    if expected_arity == found_arity do
+      {ast, {false, {macro, aliases, expected_arity}}}
+    else
+      {ast, {result, {macro, aliases, expected_arity}}}
+    end
   end
 
-  defp is_unused_in_ast(other, {result, {macro, aliases}}) do
-    {other, {result, {macro, aliases}}}
+  defp is_unused_in_ast(other, {result, {macro, aliases, arity}}) do
+    {other, {result, {macro, aliases, arity}}}
   end
 
   defp macros(ast, module_aliases) do
@@ -100,17 +103,25 @@ defmodule Meandro.Rule.UnusedMacros do
   end
 
   defp collect_macros(
-         {:defmacro, [line: line_num], [{macro_name, _, _}, _]} = ast,
+         {:defmacro, [line: line_num], [{macro_name, _, args}, _]} = ast,
          {module_aliases, macros}
        ) do
-    module = Enum.map_join(module_aliases, ".", &Atom.to_string/1) |> String.to_atom()
+    arity = arity(args)
 
     {ast,
      {module_aliases,
-      [%{name: macro_name, line: line_num, aliases: module_aliases, module: module} | macros]}}
+      [%{name: macro_name, line: line_num, aliases: module_aliases, arity: arity} | macros]}}
   end
 
   defp collect_macros(other, {module_aliases, macros}) do
     {other, {module_aliases, macros}}
+  end
+
+  defp arity(nil) do
+    0
+  end
+
+  defp arity(list) do
+    Kernel.length(list)
   end
 end
