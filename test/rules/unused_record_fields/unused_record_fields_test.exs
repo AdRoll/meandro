@@ -117,6 +117,7 @@ defmodule MeandroTest.Rule.UnusedRecordFields do
 
     expected_text1 =
       "Record :#{atom_name1} (#{camel_name1}) has an unused field in the module: #{unused_field1}"
+
     expected_text2 =
       "Record :#{atom_name2} (#{camel_name2}) has an unused field in the module: #{unused_field2}"
 
@@ -130,13 +131,13 @@ defmodule MeandroTest.Rule.UnusedRecordFields do
                text: ^expected_text1
              },
              %Meandro.Rule{
-              file: @test_directory_path <> ^file,
-              line: 4,
-              module: ^module,
-              pattern: {^atom_name2, ^unused_field2},
-              rule: Meandro.Rule.UnusedRecordFields,
-              text: ^expected_text2
-            }
+               file: @test_directory_path <> ^file,
+               line: 4,
+               module: ^module,
+               pattern: {^atom_name2, ^unused_field2},
+               rule: Meandro.Rule.UnusedRecordFields,
+               text: ^expected_text2
+             }
            ] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
   end
 
