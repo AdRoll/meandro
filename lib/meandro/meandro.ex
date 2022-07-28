@@ -21,7 +21,7 @@ defmodule Meandro do
 
     results =
       Enum.reduce(rules, [], fn rule_mod, acc ->
-          Meandro.Rule.analyze(rule_mod, files_and_asts, :nocontext) ++ acc
+        Meandro.Rule.analyze(rule_mod, files_and_asts, :nocontext) ++ acc
       end)
 
     %{
