@@ -19,11 +19,11 @@ defmodule Meandro.Rule.UnusedRecordFields do
   end
 
   @impl Meandro.Rule
-  def is_ignored?({module, record, fields}, {module, record, fields}) do
+  def is_ignored?({record, fields}, {record, fields}) do
     true
   end
 
-  def is_ignored?({_module, record, _fields}, record) do
+  def is_ignored?({record, _fields}, record) do
     true
   end
 
@@ -32,7 +32,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
   end
 
   defp analyze_module(file, ast) do
-    {_, acc} = Macro.prewalk(ast, %{module: nil, records: []}, &collect_record_info/2)
+    {_, acc} = Macro.prewalk(ast, %{current_module: nil, records: []}, &collect_record_info/2)
 
     for {module, name, _num_of_fields, unused_fields, line} <-
           Enum.reverse(acc[:records]),
@@ -56,13 +56,13 @@ defmodule Meandro.Rule.UnusedRecordFields do
          acc
        ) do
     module_name = Util.ast_module_name_to_atom(aliases)
-    acc = %{acc | module: module_name}
+    acc = %{acc | current_module: module_name}
     {ast, acc}
   end
 
   defp collect_record_info(
          {{:., [line: line], aliases}, _, params} = ast,
-         %{module: module, records: records} = acc
+         %{current_module: module, records: records} = acc
        ) do
     case aliases do
       [{:__aliases__, _, [:Record]}, record_def] when record_def in [:defrecord, :defrecordp] ->
@@ -81,7 +81,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # {:{}, [line: 11], [:priv_record, {:variable, [line: 11], nil}, {:variable, [line: 11], nil}]}
   defp collect_record_info(
          {:{}, [line: _], [maybe_record_name | _args]} = ast,
-         %{module: module, records: records} = acc
+         %{current_module: module, records: records} = acc
        )
        when is_atom(maybe_record_name) do
     case List.keyfind(records, maybe_record_name, 1, :not_found) do
@@ -101,7 +101,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # {:{}, [line: _],[{:__aliases__, [line: _],[:PrivRecord]},{:variable, [line: _], nil},{:variable, [line: _], nil}]}
   defp collect_record_info(
          {:{}, [line: _], [{:__aliases__, [line: _], [maybe_record_name]} | _args]} = ast,
-         %{module: module, records: records} = acc
+         %{current_module: module, records: records} = acc
        )
        when is_atom(maybe_record_name) do
     # Atoms like :PrivRecord are different than atoms like PrivRecord.
@@ -132,7 +132,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # E.g.: record_name(record_name(), :record_field)
   defp collect_record_info(
          {maybe_record_name, [line: _], [{_, [line: _], _}, maybe_field]} = ast,
-         %{module: module, records: records} = acc
+         %{current_module: module, records: records} = acc
        )
        when is_atom(maybe_record_name) and is_atom(maybe_field) do
     case List.keyfind(records, maybe_record_name, 1, :not_found) do
@@ -150,7 +150,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # {:spiderman,[line: 26],[{:spiderman,[line: 26],[]},[name: "Gwen Stacy",is_cool?: :heck_yeah]]}
   defp collect_record_info(
          {maybe_record_name, [line: _], [{_, [line: _], _}, maybe_fields]} = ast,
-         %{module: module, records: records} = acc
+         %{current_module: module, records: records} = acc
        )
        when is_atom(maybe_record_name) and is_list(maybe_fields) do
     case List.keyfind(records, maybe_record_name, 1, :not_found) do
@@ -169,7 +169,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # E.g.: setting values: record_name(field1: value1, field2: value2, ...)
   defp collect_record_info(
          {maybe_record_name, [line: _], [maybe_fields]} = ast,
-         %{module: module, records: records} = acc
+         %{current_module: module, records: records} = acc
        )
        when is_atom(maybe_record_name) and is_list(maybe_fields) do
     if Keyword.keyword?(maybe_fields) do
@@ -192,9 +192,10 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # E.g.: getting 0-based field index: record_name(:field)
   defp collect_record_info(
          {maybe_record_name, [line: _], [maybe_field]} = ast,
-         %{module: module, records: records} = acc
+         %{current_module: module, records: records} = acc
        )
-       when is_atom(maybe_record_name) and is_atom(maybe_field) do
+       when is_atom(maybe_record_name) and maybe_record_name != :__aliases__ and
+              is_atom(maybe_field) do
     case List.keyfind(records, maybe_record_name, 1, :not_found) do
       :not_found ->
         # it wasn't a record
@@ -210,7 +211,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # E.g.: record_name(record_variable, :record_field)
   defp collect_record_info(
          {record_name, [line: _], [{:record, _, _}, field]} = ast,
-         %{module: module, records: records} = acc
+         %{current_module: module, records: records} = acc
        )
        when is_atom(record_name) and is_atom(field) do
     {^module, ^record_name, num_of_fields, fields, line} = List.keyfind(records, record_name, 1)

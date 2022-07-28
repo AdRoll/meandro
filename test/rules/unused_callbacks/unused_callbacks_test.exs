@@ -27,14 +27,14 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
              %Meandro.Rule{
                file: @test_directory_path <> "bad.exs",
                line: 5,
-               pattern: {^module, :unused, 0},
+               pattern: {:unused, 0},
                rule: Meandro.Rule.UnusedCallbacks,
                text: ^expected_text1
              },
              %Meandro.Rule{
                file: @test_directory_path <> "bad.exs",
                line: 6,
-               pattern: {^module, :unused_too, 0},
+               pattern: {:unused_too, 0},
                rule: Meandro.Rule.UnusedCallbacks,
                text: ^expected_text2
              }
@@ -52,14 +52,14 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
              %Meandro.Rule{
                file: @test_directory_path <> "bad.exs",
                line: 5,
-               pattern: {^module, :unused, 0},
+               pattern: {:unused, 0},
                rule: Meandro.Rule.UnusedCallbacks,
                text: ^expected_text1
              },
              %Meandro.Rule{
                file: @test_directory_path <> "bad.exs",
                line: 6,
-               pattern: {^module, :unused_too, 0},
+               pattern: {:unused_too, 0},
                rule: Meandro.Rule.UnusedCallbacks,
                text: ^expected_text2
              }
