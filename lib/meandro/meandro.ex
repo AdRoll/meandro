@@ -20,7 +20,9 @@ defmodule Meandro do
     files_and_asts = Meandro.Util.parse_files(files, parsing_style)
 
     results =
-      for rule_mod <- rules, do: Meandro.Rule.analyze(rule_mod, files_and_asts, :nocontext)
+      Enum.reduce(rules, [], fn rule_mod, acc ->
+        Meandro.Rule.analyze(rule_mod, files_and_asts, :nocontext) ++ acc
+      end)
 
     %{
       results: results,

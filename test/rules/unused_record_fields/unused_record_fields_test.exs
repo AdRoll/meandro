@@ -1,4 +1,4 @@
-defmodule MeandroTest.UnusedRecordFields do
+defmodule MeandroTest.UnusedRecordField do
   use ExUnit.Case
 
   alias Meandro.Rule
@@ -25,10 +25,10 @@ defmodule MeandroTest.UnusedRecordFields do
     [unused_field1, unused_field2] = fields
 
     expected_text1 =
-      "Record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field1}"
+      "Public record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field1}"
 
     expected_text2 =
-      "Record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field2}"
+      "Public record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field2}"
 
     assert [
              %Rule{
@@ -66,10 +66,10 @@ defmodule MeandroTest.UnusedRecordFields do
     [unused_field1, unused_field2] = fields
 
     expected_text1 =
-      "Record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field1}"
+      "Public record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field1}"
 
     expected_text2 =
-      "Record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field2}"
+      "Public record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field2}"
 
     assert [
              %Rule{
@@ -100,7 +100,7 @@ defmodule MeandroTest.UnusedRecordFields do
     [unused_field] = Enum.filter(fields, fn s -> s == :unused end)
 
     expected_text =
-      "Record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field}"
+      "Public record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field}"
 
     assert [
              %Rule{
@@ -123,10 +123,10 @@ defmodule MeandroTest.UnusedRecordFields do
     {camel_name2, atom_name2, [unused_field2]} = record2
 
     expected_text1 =
-      "Record :#{atom_name1} (#{camel_name1}) has an unused field in the module: #{unused_field1}"
+      "Public record :#{atom_name1} (#{camel_name1}) has an unused field in the module: #{unused_field1}"
 
     expected_text2 =
-      "Record :#{atom_name2} (#{camel_name2}) has an unused field in the module: #{unused_field2}"
+      "Private record :#{atom_name2} (#{camel_name2}) has an unused field in the module: #{unused_field2}"
 
     assert [
              %Rule{

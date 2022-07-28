@@ -38,7 +38,7 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
     files_and_asts = TestHelpers.parse_files([file])
 
     expected_text =
-      "Callback MeandroTest.MyBehExtra:used_only_once/1 is not used anywhere in the module"
+      "Callback MeandroTest.MultiExtra:used_only_once/1 is not used anywhere in the module"
 
     assert [
              %Rule{
