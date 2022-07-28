@@ -46,7 +46,10 @@ defmodule Mix.Tasks.Meandro do
 
     Mix.shell().info("Looking for oxbow lakes to dry up...")
 
-    rules = for file <- Path.wildcard(@rules_wildcard), do: Meandro.Util.module_name_from_file_path(file)
+    rules =
+      for file <- Path.wildcard(@rules_wildcard),
+          do: Meandro.Util.module_name_from_file_path(file)
+
     Mix.shell().info("Meandro rules: #{inspect(rules)}")
 
     ## All files except those under _build or _checkouts
