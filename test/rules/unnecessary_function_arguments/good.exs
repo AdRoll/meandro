@@ -18,7 +18,7 @@ defmodule MeandroTest.UFA.Good do
   defp two_two(arg1, arg2) when is_binary(arg1), is_atom(arg2) do
     "All args only used in guards"
   end
-  
+
   defp with_integer(0), do: "argument is an integer"
   defp with_string("boo"), do: "argument is a string"
 end
