@@ -40,7 +40,7 @@ defmodule Meandro.Rule.UnusedMacros do
           rule: __MODULE__,
           line: line,
           pattern: {macro, arity},
-          text: "The macro #{macro} with arity #{arity} is unused"
+          text: "The macro #{macro}/#{arity} is unused"
         }
       else
         []
