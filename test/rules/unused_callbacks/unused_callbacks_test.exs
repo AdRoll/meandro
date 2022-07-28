@@ -17,35 +17,35 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
   end
 
   test "emits warnings on nested modules using parent callbacks" do
-    file = "nested.exs"
-    module = read_module_name(file)
-    files_and_asts = parse_files([file])
+    file = @test_directory_path <> "nested.exs"
+    module = TestHelpers.read_module_name(file)
+    files_and_asts = TestHelpers.parse_files([file])
     expected_text = "Callback #{module}:used_incorrectly/0 is not used anywhere in the module"
 
     assert [
-             %Meandro.Rule{
-               file: @test_directory_path <> "nested.exs",
+             %Rule{
+               file: ^file,
                line: 3,
                pattern: {:used_incorrectly, 0},
-               rule: Meandro.Rule.UnusedCallbacks,
+               rule: UnusedCallbacks,
                text: ^expected_text
              }
            ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
   end
 
   test "it's not fooled by multiple modules with the same callback names" do
-    file = "multi.exs"
-    files_and_asts = parse_files([file])
+    file = @test_directory_path <> "multi.exs"
+    files_and_asts = TestHelpers.parse_files([file])
 
     expected_text =
       "Callback MeandroTest.MyBehExtra:used_only_once/1 is not used anywhere in the module"
 
     assert [
-             %Meandro.Rule{
-               file: @test_directory_path <> "multi.exs",
+             %Rule{
+               file: ^file,
                line: 16,
                pattern: {:used_only_once, 1},
-               rule: Meandro.Rule.UnusedCallbacks,
+               rule: UnusedCallbacks,
                text: ^expected_text
              }
            ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
