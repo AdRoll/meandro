@@ -52,7 +52,6 @@ defmodule Meandro.Rule.UnusedStructFields do
             true ->
               %Meandro.Rule{
                 file: file,
-                rule: __MODULE__,
                 pattern: {module_name, field},
                 text: "The field #{field} from the struct #{module_name} is unused"
               }
