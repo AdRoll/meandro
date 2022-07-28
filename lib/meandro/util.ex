@@ -70,8 +70,7 @@ defmodule Meandro.Util do
 
     Regex.scan(pattern, contents, capture: :all_but_first)
     |> List.flatten()
-    |> List.first()
-    |> String.to_atom()
+    |> Module.concat()
   end
 
   @doc """
