@@ -31,6 +31,9 @@ defmodule Mix.Tasks.Meandro do
   # @rules should have the following format
   # [{:unused_callbacks, Meandro.Rule.UnusedCallbacks},
   #  {:unused_struct_fields, Meandro.Rule.UnusedStructFields},...]
+  # or its equivalent Elixir format
+  # [unused_callbacks: Meandro.Rule.UnusedCallbacks,
+  #  unused_struct_fields: Meandro.Rule.UnusedStructFields, ...]
   @rules []
 
   # runs the task recursively in umbrella projects

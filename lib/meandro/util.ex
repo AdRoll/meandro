@@ -36,12 +36,24 @@ defmodule Meandro.Util do
   end
 
   defp maybe_split_by_module(ast, file) do
-    {_, result} = Macro.prewalk(ast, [], &collect_modules/2)
+    {_, {_, result}} = Macro.prewalk(ast, {file, []}, &collect_modules/2)
     {file, result}
   end
 
-  defp collect_modules({:defmodule, _, _} = module_node, acc) do
-    {module_node, acc ++ [{module_name(module_node), module_node}]}
+  defp collect_modules({:defmodule, _, params} = module_node, {file, acc}) do
+    case params do
+      [{:__aliases__, _, _} | _] ->
+        {file, {module_node, acc ++ [{module_name(module_node), module_node}]}}
+
+      _ ->
+        # @todo cry and fix this
+        # try your luck at parsing https://github.com/bencheeorg/benchee/blob/main/lib/benchee.ex
+        Mix.shell().info(
+          "meandro had to ignore file '#{file}' due to its unexpectedly formed AST"
+        )
+
+        {file, {module_node, acc}}
+    end
   end
 
   defp collect_modules(node, acc) do
