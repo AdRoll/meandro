@@ -9,6 +9,8 @@ defmodule Meandro.Rule.UnusedCallbacks do
      If you use `apply(…)` or other method, you'll have to ignore this rule.
   """
 
+  alias Meandro.Util
+
   @behaviour Meandro.Rule
 
   @impl Meandro.Rule
@@ -37,10 +39,11 @@ defmodule Meandro.Rule.UnusedCallbacks do
     {_, acc} = Macro.prewalk(ast, %{current_module: nil, callbacks: []}, &collect_callbacks/2)
     %{callbacks: callbacks} = acc
 
-    for {module, name, arity, line, count} <- callbacks, count == 0 do
+    for {module, name, arity, line, count} <- Enum.reverse(callbacks), count == 0 do
       %Meandro.Rule{
         file: file,
         line: line,
+        module: module,
         text: "Callback #{module}:#{name}/#{arity} is not used anywhere in the module",
         pattern: {name, arity}
       }
@@ -49,10 +52,12 @@ defmodule Meandro.Rule.UnusedCallbacks do
 
   # When we find a module definition we write it down, so we can pair it with the callback definition
   defp collect_callbacks(
-         {:defmodule, _, _} = ast,
+         {:defmodule, _, [{:__aliases__, _, aliases}, _]} = ast,
          acc
        ) do
-    {ast, %{acc | current_module: Meandro.Util.module_name(ast)}}
+    module_name = Util.ast_module_name_to_atom(aliases)
+
+    {ast, %{acc | current_module: module_name}}
   end
 
   # When we find a callback, we write it down together with the module it was found on.
