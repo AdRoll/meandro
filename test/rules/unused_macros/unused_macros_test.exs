@@ -30,7 +30,7 @@ defmodule MeandroTest.Rule.UnusedMacrosTest do
                line: 2,
                pattern: {:macro_a, 0},
                rule: Meandro.Rule.UnusedMacros,
-               text: "The macro macro_a with arity 0 is unused"
+               text: "The macro macro_a/0 is unused"
              }
            ] = Rule.analyze(UnusedMacros, files_and_asts, :nocontext)
   end
@@ -44,7 +44,7 @@ defmodule MeandroTest.Rule.UnusedMacrosTest do
                line: 14,
                pattern: {:macro_a, 2},
                rule: Meandro.Rule.UnusedMacros,
-               text: "The macro macro_a with arity 2 is unused"
+               text: "The macro macro_a/2 is unused"
              }
            ] = Rule.analyze(UnusedMacros, files_and_asts, :nocontext)
   end

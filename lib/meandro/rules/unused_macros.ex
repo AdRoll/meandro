@@ -20,6 +20,10 @@ defmodule Meandro.Rule.UnusedMacros do
     true
   end
 
+  def is_ignored?({macro, _arity}, macro) do
+    true
+  end
+
   def is_ignored?(_pattern, _ignore_spec) do
     false
   end
