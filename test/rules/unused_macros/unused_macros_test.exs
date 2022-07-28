@@ -27,7 +27,7 @@ defmodule MeandroTest.Rule.UnusedMacrosTest do
     assert [
              %Meandro.Rule{
                file: "test/rules/unused_macros/one_unused.exs",
-               line: 3,
+               line: 2,
                pattern: {:"MeandroTest.MyMacroTest", :macro_a},
                rule: Meandro.Rule.UnusedMacros,
                text: "The macro macro_a is unused"
