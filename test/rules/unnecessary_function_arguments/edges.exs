@@ -1,13 +1,13 @@
-defmodule Meandro.Test.MyBeh do
+defmodule MeandroTest.UFA.MyBeh do
   @moduledoc "MyBeh definition"
   @callback a_callback(any()) :: tuple()
   @callback another_callback(any()) :: tuple()
 end
 
-defmodule Meandro.Test.MyImpl do
+defmodule MeandroTest.UFA.MyImpl do
   @moduledoc "MyBeh implementation"
 
-  alias Meandro.Test.MyBeh
+  alias MeandroTest.UFA.MyBeh
   @behaviour MyBeh
 
   @impl MyBeh
