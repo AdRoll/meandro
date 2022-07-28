@@ -19,7 +19,7 @@ defmodule Meandro.Rule.UnusedStructField do
     )
   end
 
-  @impl true
+  @impl Meandro.Rule
   def is_ignored?(module, module) do
     true
   end
