@@ -18,6 +18,7 @@ defmodule Meandro do
   @spec analyze([Path.t()], [module()], Meandro.Util.parsing_style()) :: result()
   def analyze(files, rules, parsing_style) do
     files_and_asts = Meandro.Util.parse_files(files, parsing_style)
+    ignores = Meandro.Ignore.ignores(files_and_asts)
 
     results =
       for rule_mod <- rules, do: Meandro.Rule.analyze(rule_mod, files_and_asts, :nocontext)
