@@ -1,5 +1,6 @@
-@doc "There are no function arguments here here"
 defmodule MeandroTest.UFA.None do
+  @moduledoc "There are no function arguments here here"
+
   @doc "A regular function with no arguments"
   def public do
     :no_args

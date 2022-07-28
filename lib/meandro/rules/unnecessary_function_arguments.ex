@@ -11,8 +11,9 @@ defmodule Meandro.Rule.UnnecessaryFunctionArguments do
 
   @impl Meandro.Rule
   def analyze(files_and_asts, _options) do
-    for {file, ast} <- files_and_asts,
-        result <- analyze_file(file, ast) do
+    for {file, asts} <- files_and_asts,
+        {mod, ast} <- asts,
+        result <- analyze_file(file, mod, ast) do
       result
     end
   end
@@ -34,11 +35,11 @@ defmodule Meandro.Rule.UnnecessaryFunctionArguments do
     false
   end
 
-  defp analyze_file(file, ast) do
-    {_, acc} = Macro.prewalk(ast, %{current_module: nil, functions: %{}}, &collect_functions/2)
+  defp analyze_file(file, module, ast) do
+    {_, acc} = Macro.prewalk(ast, %{is_impl?: false, functions: %{}}, &collect_functions/2)
     %{functions: functions} = acc
 
-    for {module, function, arity, position, line} <- unnecessary_arguments(functions) do
+    for {function, arity, position, line} <- unnecessary_arguments(functions) do
       %Meandro.Rule{
         file: file,
         line: line,
@@ -49,14 +50,16 @@ defmodule Meandro.Rule.UnnecessaryFunctionArguments do
     end
   end
 
-  # When we find a module definition we write it down, so we can pair it with the callback definition
-  defp collect_functions(
-         {:defmodule, [line: _], [{:__aliases__, [line: _], aliases}, _other]} = ast,
-         acc
-       ) do
-    module_name = aliases |> Enum.map_join(".", &Atom.to_string/1) |> String.to_atom()
+  # We track @impl… attributes to avoid analyzing behaviour callbacks.
+  # You can't remove parameters from them.
+  defp collect_functions({:impl, _, _} = node, acc) do
+    {node, %{acc | is_impl?: true}}
+  end
 
-    {ast, %{acc | current_module: module_name}}
+  # If the function appears below an @impl … line, we don't check it.
+  # It's a behaviour callback. You can't remove parameters from it.
+  defp collect_functions({:def, _, _} = node, %{is_impl?: true} = acc) do
+    {node, %{acc | is_impl?: false}}
   end
 
   defp collect_functions({def, meta, [params | _]} = node, acc)
@@ -70,10 +73,10 @@ defmodule Meandro.Rule.UnnecessaryFunctionArguments do
           params
       end
 
-    %{current_module: module, functions: functions} = acc
+    %{functions: functions} = acc
 
     arg_patterns = extract_arg_patterns(arguments)
-    key = {module, name, length(arg_patterns)}
+    key = {name, length(arg_patterns)}
     clause = {meta[:line], arg_patterns}
 
     new_functions =
@@ -84,7 +87,7 @@ defmodule Meandro.Rule.UnnecessaryFunctionArguments do
         &[clause | &1]
       )
 
-    {node, %{acc | functions: new_functions}}
+    {node, %{acc | is_impl?: false, functions: new_functions}}
   end
 
   defp collect_functions(node, acc) do
@@ -103,9 +106,9 @@ defmodule Meandro.Rule.UnnecessaryFunctionArguments do
   end
 
   defp unnecessary_arguments(functions) do
-    for {{module, function, arity}, clauses} <- functions,
+    for {{function, arity}, clauses} <- functions,
         {line, position} <- unnecessary_arguments(arity, clauses) do
-      {module, function, arity, position, line}
+      {function, arity, position, line}
     end
   end
 

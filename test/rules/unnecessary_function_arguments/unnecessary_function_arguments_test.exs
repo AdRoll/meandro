@@ -21,11 +21,11 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
     module = TestHelpers.read_module_name(file)
 
     expected_warnings = [
-      {4, :ignore, 1, 1},
-      {7, :ignore, 2, 2},
-      {10, :also_ignore, 2, 2},
-      {17, :private, 5, 2},
-      {17, :private, 5, 3}
+      {5, :ignore, 1, 1},
+      {8, :ignore, 2, 2},
+      {11, :also_ignore, 2, 2},
+      {18, :private, 5, 2},
+      {18, :private, 5, 3}
     ]
 
     expected_results =
@@ -35,6 +35,33 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
           line: line,
           pattern: {function, arity, position},
           rule: Meandro.Rule.UnnecessaryFunctionArguments,
+          text:
+            "Argument in position #{position} of #{module}.#{function}/#{arity} is ignored in all of its clauses"
+        }
+      end
+
+    files_and_asts = TestHelpers.parse_files([file])
+
+    assert ^expected_results =
+             Enum.sort(Rule.analyze(UnnecessaryFunctionArguments, files_and_asts, :nocontext))
+  end
+
+  test "handles exceptions and edge cases correctly" do
+    file = @test_directory_path <> "edges.exs"
+    module = "MeandroTest.UFA.MyImpl"
+
+    expected_warnings = [
+      {17, :another_callback, 1, 1},
+      {22, :warn, 1, 1}
+    ]
+
+    expected_results =
+      for {line, function, arity, position} <- expected_warnings do
+        %Rule{
+          file: @test_directory_path <> "edges.exs",
+          line: line,
+          pattern: {function, arity, position},
+          rule: UnnecessaryFunctionArguments,
           text:
             "Argument in position #{position} of #{module}.#{function}/#{arity} is ignored in all of its clauses"
         }
