@@ -9,7 +9,7 @@ defmodule Meandro.Rule.UnusedStructField do
 
   @behaviour Meandro.Rule
 
-  @impl true
+  @impl Meandro.Rule
   def analyze(files_and_asts, _options) do
     List.flatten(
       for {file, ast} <- files_and_asts,
