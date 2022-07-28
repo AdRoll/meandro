@@ -34,7 +34,12 @@ defmodule Mix.Tasks.Meandro do
   # or its equivalent Elixir format
   # [unused_callbacks: Meandro.Rule.UnusedCallbacks,
   #  unused_struct_fields: Meandro.Rule.UnusedStructFields, ...]
-  @rules []
+  @rules [
+    # unused_callbacks: Meandro.Rule.UnusedCallbacks,
+    # unused_struct_fields: Meandro.Rule.UnusedStructFields,
+    unused_record_fields: Meandro.Rule.UnusedRecordFields
+    # unused_function_arguments: Meandro.Rule.UnnecessaryFunctionArguments
+  ]
 
   # runs the task recursively in umbrella projects
   @recursive true
