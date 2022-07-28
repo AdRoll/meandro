@@ -21,7 +21,11 @@ defmodule Meandro.Rule.UnusedStructField do
   end
 
   @impl Meandro.Rule
-  def is_ignored?(module, module) do
+  def is_ignored?({struct, field}, {struct, field}) do
+    true
+  end
+
+  def is_ignored?({struct, _field}, struct) do
     true
   end
 
@@ -48,6 +52,7 @@ defmodule Meandro.Rule.UnusedStructField do
               %Meandro.Rule{
                 file: file,
                 rule: __MODULE__,
+                pattern: {module_name, field},
                 text: "The field #{field} from the struct #{module_name} is unused"
               }
 
