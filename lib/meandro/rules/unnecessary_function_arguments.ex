@@ -130,5 +130,5 @@ defmodule Meandro.Rule.UnnecessaryFunctionArguments do
     end
   end
 
-  defp is_ignored(_), do: false
+  defp is_ignored?(_), do: false
 end

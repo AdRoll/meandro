@@ -17,7 +17,8 @@ defmodule Meandro.MixProject do
         plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
       ],
       aliases: aliases(),
-      docs: docs()
+      docs: docs(),
+      preferred_cli_env: [test_all: :test]
     ]
   end
 
@@ -38,7 +39,10 @@ defmodule Meandro.MixProject do
   end
 
   defp aliases() do
-    [all: ["format --check-formatted", "dialyzer", "credo --strict"]]
+    [
+      all: ["format --check-formatted", "dialyzer", "credo --strict"],
+      test_all: ["test --trace --cover", "test.coverage"]
+    ]
   end
 
   defp docs() do
