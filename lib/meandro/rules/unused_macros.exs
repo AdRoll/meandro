@@ -5,17 +5,19 @@ defmodule Meandro.Rule.UnusedMacros do
 
   @behaviour Meandro.Rule
 
-  @impl true
+  @impl Meandro.Rule
   def analyze(files_and_asts, _options) do
+    IO.puts("Heeeeey")
     List.flatten(
-      for {file, ast} <- files_and_asts,
+      for {file, module_asts} <- files_and_asts,
+          {_module_name, ast} <- module_asts,
           result <- analyze_module(file, ast, files_and_asts) do
         result
       end
     )
   end
 
-  @impl true
+  @impl Meandro.Rule
   def is_ignored?(module, module) do
     true
   end
@@ -29,6 +31,7 @@ defmodule Meandro.Rule.UnusedMacros do
 
     for macro <- macros do
       unused = is_unused?(macro, files_and_asts)
+
       if unused do
         %Meandro.Rule{
           file: file,
