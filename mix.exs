@@ -18,7 +18,7 @@ defmodule Meandro.MixProject do
       ],
       aliases: aliases(),
       docs: docs(),
-      preferred_cli_env: [test_all: :test]
+      preferred_cli_env: [test_all: :test, dialyzer: :test]
     ]
   end
 
