@@ -6,7 +6,8 @@ defmodule Rec do
     age: :it_depends,
     superpower: :spiders,
     is_cool?: true,
-    is_made_of_spiders?: false
+    is_made_of_spiders?: false,
+    occupation: :journalist
   )
 
   def create_using_a_field do
@@ -27,5 +28,9 @@ defmodule Rec do
 
   def pattern_matched_field(record) do
     spiderman(is_made_of_spiders?: is_made_of_spiders?) = record
+  end
+
+  def pattern_matched_field_fun(spiderman(occupation: occupation)) do
+    occupation
   end
 end
