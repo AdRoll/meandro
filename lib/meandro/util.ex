@@ -36,12 +36,24 @@ defmodule Meandro.Util do
   end
 
   defp maybe_split_by_module(ast, file) do
-    {_, result} = Macro.prewalk(ast, [], &collect_modules/2)
+    {_, {_, result}} = Macro.prewalk(ast, {file, []}, &collect_modules/2)
     {file, result}
   end
 
-  defp collect_modules({:defmodule, _, _} = module_node, acc) do
-    {module_node, acc ++ [{module_name(module_node), module_node}]}
+  defp collect_modules({:defmodule, _, params} = module_node, {file, acc}) do
+    case params do
+      [{:__aliases__, _, _} | _] ->
+        {module_node, {file, acc ++ [{module_name(module_node), module_node}]}}
+
+      _ ->
+        # @todo cry and fix this
+        # try your luck at parsing https://github.com/bencheeorg/benchee/blob/main/lib/benchee.ex
+        Mix.shell().error(
+          "Meandro had to ignore file '#{file}' due to its unexpectedly formed AST"
+        )
+
+        {module_node, {file, acc}}
+    end
   end
 
   defp collect_modules(node, acc) do
@@ -53,7 +65,12 @@ defmodule Meandro.Util do
   """
   @spec module_name(Macro.t()) :: atom()
   def module_name({:defmodule, _, [{:__aliases__, _, aliases}, _]}) do
-    Enum.map_join(aliases, ".", &Atom.to_string/1) |> String.to_atom()
+    ast_module_name_to_atom(aliases)
+  end
+
+  @spec ast_module_name_to_atom([atom()]) :: atom()
+  def ast_module_name_to_atom(aliases) do
+    aliases |> Enum.map_join(".", &Atom.to_string/1) |> String.to_atom()
   end
 
   @doc """

@@ -31,6 +31,9 @@ defmodule Mix.Tasks.Meandro do
   # @rules should have the following format
   # [{:unused_callbacks, Meandro.Rule.UnusedCallbacks},
   #  {:unused_struct_fields, Meandro.Rule.UnusedStructFields},...]
+  # or its equivalent Elixir format
+  # [unused_callbacks: Meandro.Rule.UnusedCallbacks,
+  #  unused_struct_fields: Meandro.Rule.UnusedStructFields, ...]
   @rules []
 
   # runs the task recursively in umbrella projects
@@ -61,7 +64,12 @@ defmodule Mix.Tasks.Meandro do
       |> String.to_existing_atom()
 
     Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
-    Meandro.analyze(files, rules, parsing_style)
+
+    result = Meandro.analyze(files, rules, parsing_style)
+    result_str = Kernel.inspect(result, pretty: true)
+
+    IO.puts("Meandro obtained the following results: #{result_str}")
+    result
   end
 
   defp get_files(files, rest_of_files) when is_binary(files) do

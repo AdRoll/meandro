@@ -16,11 +16,47 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
     assert [] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
   end
 
-  test "emits warnings on files where a callback is unused" do
+  test "emits warnings on nested modules using parent callbacks" do
+    file = "nested.exs"
+    module = read_module_name(file)
+    files_and_asts = parse_files([file])
+    expected_text = "Callback #{module}:used_incorrectly/0 is not used anywhere in the module"
+
+    assert [
+             %Meandro.Rule{
+               file: @test_directory_path <> "nested.exs",
+               line: 3,
+               pattern: {:used_incorrectly, 0},
+               rule: Meandro.Rule.UnusedCallbacks,
+               text: ^expected_text
+             }
+           ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
+  end
+
+  test "it's not fooled by multiple modules with the same callback names" do
+    file = "multi.exs"
+    files_and_asts = parse_files([file])
+
+    expected_text =
+      "Callback MeandroTest.MyBehExtra:used_only_once/1 is not used anywhere in the module"
+
+    assert [
+             %Meandro.Rule{
+               file: @test_directory_path <> "multi.exs",
+               line: 16,
+               pattern: {:used_only_once, 1},
+               rule: Meandro.Rule.UnusedCallbacks,
+               text: ^expected_text
+             }
+           ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
+  end
+
+  test "emits warnings on files where a callback is unused, and the warnings are sorted" do
     file = "bad.exs"
     module = read_module_name(file)
     files_and_asts = parse_files([file])
-    expected_text = "Callback #{module}:unused/0 is not used anywhere in the module"
+    expected_text1 = "Callback #{module}:unused/0 is not used anywhere in the module"
+    expected_text2 = "Callback #{module}:unused_too/0 is not used anywhere in the module"
 
     assert [
              %Meandro.Rule{
@@ -28,7 +64,14 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
                line: 5,
                pattern: {:unused, 0},
                rule: Meandro.Rule.UnusedCallbacks,
-               text: ^expected_text
+               text: ^expected_text1
+             },
+             %Meandro.Rule{
+               file: @test_directory_path <> "bad.exs",
+               line: 6,
+               pattern: {:unused_too, 0},
+               rule: Meandro.Rule.UnusedCallbacks,
+               text: ^expected_text2
              }
            ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
   end
@@ -37,7 +80,8 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
     bad_file = "bad.exs"
     module = read_module_name("bad.exs")
     files_and_asts = parse_files(["none.exs", "good.exs", bad_file])
-    expected_text = "Callback #{module}:unused/0 is not used anywhere in the module"
+    expected_text1 = "Callback #{module}:unused/0 is not used anywhere in the module"
+    expected_text2 = "Callback #{module}:unused_too/0 is not used anywhere in the module"
 
     assert [
              %Meandro.Rule{
@@ -45,7 +89,14 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
                line: 5,
                pattern: {:unused, 0},
                rule: Meandro.Rule.UnusedCallbacks,
-               text: ^expected_text
+               text: ^expected_text1
+             },
+             %Meandro.Rule{
+               file: @test_directory_path <> "bad.exs",
+               line: 6,
+               pattern: {:unused_too, 0},
+               rule: Meandro.Rule.UnusedCallbacks,
+               text: ^expected_text2
              }
            ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
   end
@@ -56,11 +107,12 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
   end
 
   defp read_module_name(file_path) do
-    {:ok, contents} = File.read("test/rules/unused_callbacks/" <> file_path)
+    {:ok, contents} = File.read(@test_directory_path <> file_path)
     pattern = ~r{defmodule \s+ ([^\s]+) }x
 
     Regex.scan(pattern, contents, capture: :all_but_first)
     |> List.flatten()
     |> List.first()
+    |> String.to_atom()
   end
 end

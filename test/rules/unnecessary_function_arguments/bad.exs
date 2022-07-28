@@ -1,5 +1,6 @@
-@doc "Some arguments are unused"
 defmodule MeandroTest.UFA.Bad do
+  @moduledoc "Some arguments are unused"
+
   @doc "One argument, one clause"
   def ignore(_this_argument), do: :ignored
 
