@@ -18,8 +18,6 @@ defmodule MeandroTest.MyMacroTest do
   end
 
   def test do
-    result_a = macro_a()
-
     macro_a("hey")
   end
 end

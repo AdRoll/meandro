@@ -36,7 +36,7 @@ defmodule MeandroTest.Rule.UnusedMacrosTest do
   end
 
   test "emits warnings on files where there are several macros with the same name and different arity and one of them is not used" do
-    files_and_asts = parse_files(["different_arity.exs"])
+    files_and_asts = parse_files(["different_arity.exs", "use_macro_a.exs"])
 
     assert [
              %Meandro.Rule{

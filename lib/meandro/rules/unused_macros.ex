@@ -77,10 +77,16 @@ defmodule Meandro.Rule.UnusedMacros do
   end
 
   defp is_unused_in_ast(
-         {:., _, [{:__aliases__, _, aliases}, macro]} = ast,
-         {_result, {macro, aliases, arity}}
+         {{:., _, [{:__aliases__, _, aliases}, macro]}, _, args} = ast,
+         {result, {macro, aliases, expected_arity}}
        ) do
-    {ast, {false, {macro, aliases, arity}}}
+    found_arity = arity(args)
+
+    if expected_arity == found_arity do
+      {ast, {false, {macro, aliases, expected_arity}}}
+    else
+      {ast, {result, {macro, aliases, expected_arity}}}
+    end
   end
 
   defp is_unused_in_ast({macro, _, args} = ast, {result, {macro, aliases, expected_arity}}) do
