@@ -22,17 +22,30 @@ defmodule MeandroTest.Rule.UnusedRecordFields do
     files_and_asts = parse_files([file])
     record = read_records(file)
     [{camel_name, atom_name, fields}] = record
+    [unused_field1, unused_field2] = fields
 
-    expected_text =
-      "Record :#{atom_name} (#{camel_name}) has the following unused fields in the module: #{inspect(fields)}"
+    expected_text1 =
+      "Record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field1}"
+
+    expected_text2 =
+      "Record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field2}"
 
     assert [
              %Meandro.Rule{
                file: @test_directory_path <> ^file,
                line: 3,
-               pattern: {^module, ^atom_name, ^fields},
+               module: ^module,
+               pattern: {^atom_name, ^unused_field1},
                rule: Meandro.Rule.UnusedRecordFields,
-               text: ^expected_text
+               text: ^expected_text1
+             },
+             %Meandro.Rule{
+               file: @test_directory_path <> ^file,
+               line: 3,
+               module: ^module,
+               pattern: {^atom_name, ^unused_field2},
+               rule: Meandro.Rule.UnusedRecordFields,
+               text: ^expected_text2
              }
            ] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
   end
@@ -43,17 +56,30 @@ defmodule MeandroTest.Rule.UnusedRecordFields do
     files_and_asts = parse_files(["none.exs", "good.exs", bad_file])
     record = read_records(bad_file)
     [{camel_name, atom_name, fields}] = record
+    [unused_field1, unused_field2] = fields
 
-    expected_text =
-      "Record :#{atom_name} (#{camel_name}) has the following unused fields in the module: #{inspect(fields)}"
+    expected_text1 =
+      "Record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field1}"
+
+    expected_text2 =
+      "Record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field2}"
 
     assert [
              %Meandro.Rule{
                file: @test_directory_path <> ^bad_file,
                line: 3,
-               pattern: {^module, ^atom_name, ^fields},
+               module: ^module,
+               pattern: {^atom_name, ^unused_field1},
                rule: Meandro.Rule.UnusedRecordFields,
-               text: ^expected_text
+               text: ^expected_text1
+             },
+             %Meandro.Rule{
+               file: @test_directory_path <> ^bad_file,
+               line: 3,
+               module: ^module,
+               pattern: {^atom_name, ^unused_field2},
+               rule: Meandro.Rule.UnusedRecordFields,
+               text: ^expected_text2
              }
            ] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
   end
@@ -64,20 +90,61 @@ defmodule MeandroTest.Rule.UnusedRecordFields do
     files_and_asts = parse_files([file])
     [record1, _record2] = read_records(file)
     {camel_name, atom_name, fields} = record1
-    fields = Enum.filter(fields, fn s -> s == :unused end)
+    [unused_field] = Enum.filter(fields, fn s -> s == :unused end)
 
     expected_text =
-      "Record :#{atom_name} (#{camel_name}) has the following unused fields in the module: #{inspect(fields)}"
+      "Record :#{atom_name} (#{camel_name}) has an unused field in the module: #{unused_field}"
 
     assert [
              %Meandro.Rule{
                file: @test_directory_path <> ^file,
                line: 3,
-               pattern: {^module, ^atom_name, ^fields},
+               module: ^module,
+               pattern: {^atom_name, ^unused_field},
                rule: Meandro.Rule.UnusedRecordFields,
                text: ^expected_text
              }
            ] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+  end
+
+  test "emits warnings on files with multiple records, when there are only unused fields" do
+    file = "bad_multiple_records.exs"
+    module = read_module_name(file)
+    files_and_asts = parse_files([file])
+    [record1, record2] = read_records(file)
+    {camel_name1, atom_name1, [unused_field1]} = record1
+    {camel_name2, atom_name2, [unused_field2]} = record2
+
+    expected_text1 =
+      "Record :#{atom_name1} (#{camel_name1}) has an unused field in the module: #{unused_field1}"
+    expected_text2 =
+      "Record :#{atom_name2} (#{camel_name2}) has an unused field in the module: #{unused_field2}"
+
+    assert [
+             %Meandro.Rule{
+               file: @test_directory_path <> ^file,
+               line: 3,
+               module: ^module,
+               pattern: {^atom_name1, ^unused_field1},
+               rule: Meandro.Rule.UnusedRecordFields,
+               text: ^expected_text1
+             },
+             %Meandro.Rule{
+              file: @test_directory_path <> ^file,
+              line: 4,
+              module: ^module,
+              pattern: {^atom_name2, ^unused_field2},
+              rule: Meandro.Rule.UnusedRecordFields,
+              text: ^expected_text2
+            }
+           ] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+  end
+
+  test "using record fields with each of the record functions/syntaxes counts as them being used" do
+    file = "exhaustive.exs"
+    files_and_asts = parse_files([file])
+
+    assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
   end
 
   defp parse_files(paths) do

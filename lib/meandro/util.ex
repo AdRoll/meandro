@@ -53,9 +53,10 @@ defmodule Meandro.Util do
   """
   @spec module_name(Macro.t()) :: atom()
   def module_name({:defmodule, _, [{:__aliases__, _, aliases}, _]}) do
-    Enum.map_join(aliases, ".", &Atom.to_string/1) |> String.to_atom()
+    ast_module_name_to_atom(aliases)
   end
 
+  @spec ast_module_name_to_atom([atom()]) :: atom()
   def ast_module_name_to_atom(aliases) do
     aliases |> Enum.map_join(".", &Atom.to_string/1) |> String.to_atom()
   end
