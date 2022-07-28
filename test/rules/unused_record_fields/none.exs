@@ -1,5 +1,6 @@
-@doc "There are no callbacks here"
-defmodule MeandroTest.MyBeh do
+defmodule MeandroTest.None do
+  @moduledoc "There are no records here"
+
   @doc "A regular function with a module as parameter"
   def use(module) do
     module.used()

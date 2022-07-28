@@ -1,4 +1,4 @@
-defmodule Meandro.Rule.UnusedStructField do
+defmodule Meandro.Rule.UnusedStructFields do
   @moduledoc """
   Finds struct fields that are not used.
   It has the following assumptions:
@@ -6,6 +6,8 @@ defmodule Meandro.Rule.UnusedStructField do
       reassigned we don't check the struct name when looking for access to a
       struct field or modification
   """
+
+  alias Meandro.Util
 
   @behaviour Meandro.Rule
 
@@ -50,7 +52,6 @@ defmodule Meandro.Rule.UnusedStructField do
             true ->
               %Meandro.Rule{
                 file: file,
-                rule: __MODULE__,
                 pattern: {module_name, field},
                 text: "The field #{field} from the struct #{module_name} is unused"
               }
@@ -133,7 +134,7 @@ defmodule Meandro.Rule.UnusedStructField do
          {:defmodule, [line: _], [{:__aliases__, [line: _], aliases}, _other]} = ast,
          struct_info
        ) do
-    module_name = aliases |> Enum.map_join(".", &Atom.to_string/1) |> String.to_atom()
+    module_name = Util.ast_module_name_to_atom(aliases)
 
     struct_info =
       struct_info
