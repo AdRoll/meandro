@@ -17,7 +17,7 @@ defmodule Meandro.Rule.UnusedMacros do
   end
 
   @impl Meandro.Rule
-  def is_ignored?(module, module) do
+  def is_ignored?({module, macro}, {module, macro}) do
     true
   end
 
@@ -33,12 +33,14 @@ defmodule Meandro.Rule.UnusedMacros do
       unused = is_unused?(macro_info, files_and_asts)
       macro = macro_info |> Map.get(:name)
       line = macro_info |> Map.get(:line)
+      module = macro_info |> Map.get(:module)
 
       if unused do
         %Meandro.Rule{
           file: file,
           rule: __MODULE__,
           line: line,
+          pattern: {module, macro},
           text: "The macro #{macro} is unused"
         }
       else
@@ -78,7 +80,10 @@ defmodule Meandro.Rule.UnusedMacros do
     {ast, {false, macro_info}}
   end
 
-  defp is_unused_in_ast({:., _, [{:__aliases__, _, aliases}, macro]} = ast, {_result, {macro, aliases}}) do
+  defp is_unused_in_ast(
+         {:., _, [{:__aliases__, _, aliases}, macro]} = ast,
+         {_result, {macro, aliases}}
+       ) do
     {ast, {false, {macro, aliases}}}
   end
 
@@ -87,18 +92,23 @@ defmodule Meandro.Rule.UnusedMacros do
   end
 
   defp is_unused_in_ast(other, {result, {macro, aliases}}) do
-    IO.puts("----------NEXT LINE--------")
-    IO.inspect(other)
     {other, {result, {macro, aliases}}}
   end
 
   defp macros(ast, module_aliases) do
-    {_, {_module_aliases, macros}} = Macro.prewalk(ast, {module_aliases, %{}}, &collect_macros/2)
+    {_, {_module_aliases, macros}} = Macro.prewalk(ast, {module_aliases, []}, &collect_macros/2)
     macros
   end
 
-  defp collect_macros({:defmacro, [line: line_num], [{macro_name, _, _}, _]} = ast, {module_aliases, macros}) do
-    {ast, {module_aliases, [%{name: macro_name, line: line_num, aliases: module_aliases} | macros]}}
+  defp collect_macros(
+         {:defmacro, [line: line_num], [{macro_name, _, _}, _]} = ast,
+         {module_aliases, macros}
+       ) do
+    module = Enum.map_join(module_aliases, ".", &Atom.to_string/1) |> String.to_atom()
+
+    {ast,
+     {module_aliases,
+      [%{name: macro_name, line: line_num, aliases: module_aliases, module: module} | macros]}}
   end
 
   defp collect_macros(other, {module_aliases, macros}) do

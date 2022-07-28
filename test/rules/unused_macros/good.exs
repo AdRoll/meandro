@@ -1,5 +1,4 @@
 defmodule MeandroTest.MyMacroTest do
-
   defmacro macro_a do
     quote do
       :used
@@ -16,5 +15,4 @@ defmodule MeandroTest.MyMacroTest do
     result_a = macro_a()
     result_b = MeandroTest.MyMacroTest.macro_b()
   end
-
 end

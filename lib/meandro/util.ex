@@ -60,13 +60,22 @@ defmodule Meandro.Util do
   Returns the module aliases
   """
   @spec module_aliases(Macro.t()) :: Macro.t()
-  def module_aliases({:defmodule, _, [{:__aliases__, _, aliases}, _]}) do
+  def module_aliases(ast) do
+    {_, aliases} = Macro.prewalk(ast, nil, &get_module_aliases/2)
     aliases
   end
 
   def functions(ast) do
     {_, functions} = Macro.prewalk(ast, [], &get_functions/2)
     functions
+  end
+
+  defp get_module_aliases({:defmodule, _, [{:__aliases__, _, aliases}, _]} = ast, _) do
+    {ast, aliases}
+  end
+
+  defp get_module_aliases(other, aliases) do
+    {other, aliases}
   end
 
   defp get_functions({:def, _, _} = function, functions) do
