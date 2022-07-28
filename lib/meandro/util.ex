@@ -61,14 +61,30 @@ defmodule Meandro.Util do
   end
 
   @doc """
-  Returns the module name given a module node AST
+  Returns the module atom given a file_path
   """
-  @spec module_name(Macro.t()) :: atom()
+  @spec module_name_from_file_path(String.t()) :: module()
+  def module_name_from_file_path(file_path) when is_binary(file_path) do
+    {:ok, contents} = File.read(file_path)
+    pattern = ~r{defmodule \s+ ([^\s]+) }x
+
+    Regex.scan(pattern, contents, capture: :all_but_first)
+    |> List.flatten()
+    |> Module.concat()
+  end
+
+  @doc """
+  Returns the module atom given a module node AST
+  """
+  @spec module_name(Macro.t() | String.t()) :: module()
   def module_name({:defmodule, _, [{:__aliases__, _, aliases}, _]}) do
     ast_module_name_to_atom(aliases)
   end
 
-  @spec ast_module_name_to_atom([atom()]) :: atom()
+  @doc """
+  Returns the module atom joining a list of atoms
+  """
+  @spec ast_module_name_to_atom([atom()]) :: module()
   def ast_module_name_to_atom(aliases) do
     aliases |> Enum.map_join(".", &Atom.to_string/1) |> String.to_atom()
   end
