@@ -12,7 +12,8 @@ defmodule Meandro.Rule.UnusedStructField do
   @impl Meandro.Rule
   def analyze(files_and_asts, _options) do
     List.flatten(
-      for {file, ast} <- files_and_asts,
+      for {file, module_asts} <- files_and_asts,
+          {_module_name, ast} <- module_asts,
           result <- analyze_module(file, ast, files_and_asts) do
         result
       end
