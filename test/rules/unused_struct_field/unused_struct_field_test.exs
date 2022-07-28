@@ -72,13 +72,14 @@ defmodule MeandroTest.Rule.UnusedStructField do
     test "emits a warning when a field is unused in a pattern match" do
       expected_text = "The field long from the struct MeandroTest.MyStructTest is unused"
       files_and_asts = parse_files(["pattern_match_bad.exs"])
+
       assert [
-        %Meandro.Rule{
-          file: @test_directory_path <> "pattern_match_bad.exs",
-          rule: Meandro.Rule.UnusedStructField,
-          text: ^expected_text
-        }
-      ] = Rule.analyze(UnusedStructField, files_and_asts, :nocontext)
+               %Meandro.Rule{
+                 file: @test_directory_path <> "pattern_match_bad.exs",
+                 rule: Meandro.Rule.UnusedStructField,
+                 text: ^expected_text
+               }
+             ] = Rule.analyze(UnusedStructField, files_and_asts, :nocontext)
     end
   end
 
