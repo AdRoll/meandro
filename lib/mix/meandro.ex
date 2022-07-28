@@ -46,8 +46,18 @@ defmodule Mix.Tasks.Meandro do
 
     Mix.shell().info("Looking for oxbow lakes to dry up...")
 
+    meandro_root =
+      __ENV__.file
+      |> Path.split()
+      |> Enum.slice(0..-4)
+      |> Path.join()
+
+    rule_files =
+      Path.join(meandro_root, @rules_wildcard)
+      |> Path.wildcard()
+
     rules =
-      for file <- Path.wildcard(@rules_wildcard),
+      for file <- rule_files,
           do: Meandro.Util.module_name_from_file_path(file)
 
     Mix.shell().info("Meandro rules: #{inspect(rules)}")
