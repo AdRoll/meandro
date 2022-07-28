@@ -28,19 +28,12 @@ defmodule Mix.Tasks.Meandro do
   """
   use Mix.Task
 
-  # @rules should have the following format
-  # [{:unused_callbacks, Meandro.Rule.UnusedCallbacks},
-  #  {:unused_struct_fields, Meandro.Rule.UnusedStructFields},...]
-  # or its equivalent Elixir format
-  # [unused_callbacks: Meandro.Rule.UnusedCallbacks,
-  #  unused_struct_fields: Meandro.Rule.UnusedStructFields, ...]
-  @rules []
-
   # runs the task recursively in umbrella projects
   @recursive true
 
   @shortdoc "Identifies dead code for you"
   @files_wildcard "**/*.{ex,exs}"
+  @rules_wildcard "lib/meandro/rules/*.ex"
 
   @switches [
     files: :string,
@@ -52,8 +45,8 @@ defmodule Mix.Tasks.Meandro do
     {parsed, rest} = OptionParser.parse!(argv, strict: @switches)
 
     Mix.shell().info("Looking for oxbow lakes to dry up...")
-    # TODO get all the rules dynamically
-    rules = for {_rule, rule_mod} <- @rules, do: rule_mod
+
+    rules = for file <- Path.wildcard(@rules_wildcard), do: Meandro.Util.module_name_from_file_path(file)
     Mix.shell().info("Meandro rules: #{inspect(rules)}")
 
     ## All files except those under _build or _checkouts
@@ -98,6 +91,11 @@ defmodule Mix.Tasks.Meandro do
   end
 
   defp is_hidden_name?("deps/" <> _) do
+    true
+  end
+
+  # there are cases like the node_modules phoenix dep with .ex inside
+  defp is_hidden_name?("node_modules/" <> _) do
     true
   end
 

@@ -34,8 +34,5 @@ defmodule Meandro.Rule do
   def analyze(rule_mod, asts, context) do
     for result <- rule_mod.analyze(asts, context),
         do: %Meandro.Rule{result | rule: rule_mod}
-  rescue
-    x ->
-      reraise "#{inspect(rule_mod)}:analyze/3 failed: #{inspect(x)}", __STACKTRACE__
   end
 end
