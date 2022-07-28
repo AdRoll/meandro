@@ -44,6 +44,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
 
       cond do
         scope == :private ->
+          # we don't need to check the other files because it's private
           %Meandro.Rule{
             file: file,
             line: line,
