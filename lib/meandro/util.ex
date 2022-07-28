@@ -55,4 +55,21 @@ defmodule Meandro.Util do
   def module_name({:defmodule, _, [{:__aliases__, _, aliases}, _]}) do
     Enum.map_join(aliases, ".", &Atom.to_string/1) |> String.to_atom()
   end
+
+  def functions(ast) do
+    {_, functions} = Macro.prewalk(ast, [], &get_functions/2)
+    functions
+  end
+
+  defp get_functions({:def, _, _} = function, functions) do
+    {function, [function | functions]}
+  end
+
+  defp get_functions({:defp, _, _} = function, functions) do
+    {function, [function | functions]}
+  end
+
+  defp get_functions(ast, functions) do
+    {ast, functions}
+  end
 end
