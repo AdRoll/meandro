@@ -13,6 +13,6 @@ defmodule MeandroTest.MyBeh do
   end
 
   defmodule MeandroTest.MyBehNested do
-    # just a submodule
+    @moduledoc "just a submodule"
   end
 end
