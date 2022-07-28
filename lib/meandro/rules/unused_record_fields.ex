@@ -121,7 +121,6 @@ defmodule Meandro.Rule.UnusedRecordFields do
          %{current_module: module, records: records} = acc
        )
        when is_atom(maybe_record_name) do
-    IO.puts("collect alias")
 
     case List.keyfind(records, maybe_record_name, 1, :not_found) do
       :not_found ->
