@@ -35,9 +35,8 @@ defmodule Meandro.Rule.UnusedRecordFields do
 
   defp analyze_module(file, ast, files_and_asts) do
     {_, acc} = Macro.prewalk(ast, %{current_module: nil, records: []}, &collect_record_info/2)
-    IO.inspect(acc, label: "acc")
 
-    for {module, name, scope, unused_fields, line} = record <-
+    for {module, name, scope, _num_fields, unused_fields, line} = record <-
           Enum.reverse(acc[:records]),
         unused_field <- unused_fields,
         unused_fields != [] do
@@ -45,7 +44,6 @@ defmodule Meandro.Rule.UnusedRecordFields do
 
       cond do
         scope == :private ->
-          IO.puts("is private")
           %Meandro.Rule{
             file: file,
             line: line,
@@ -56,7 +54,6 @@ defmodule Meandro.Rule.UnusedRecordFields do
           }
 
         is_unused?(record, files_and_asts) ->
-          IO.puts("is_unused")
           %Meandro.Rule{
             file: file,
             line: line,
@@ -65,15 +62,13 @@ defmodule Meandro.Rule.UnusedRecordFields do
               "Public record :#{name} (#{camel_name}) has an unused field in the module: #{unused_field}",
             pattern: {name, unused_field}
           }
-        true ->
-          IO.puts("WTF")
       end
     end
   end
 
   defp is_unused?(_record, []), do: true
 
-  defp is_unused?({module, name, scope, unused_fields, line} = record, [{_file, ast} | tl]) do
+  defp is_unused?(record, [{_file, ast} | _tl]) do
     {_, acc} =
       Macro.prewalk(ast, %{current_module: nil, records: [record]}, &count_record_usage/2)
 
@@ -107,7 +102,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
             :defrecord ->
               {module, name, :public, length(fields), fields, line}
 
-            :defrecordo ->
+            :defrecordp ->
               {module, name, :private, length(fields), fields, line}
           end
 
@@ -126,6 +121,8 @@ defmodule Meandro.Rule.UnusedRecordFields do
          %{current_module: module, records: records} = acc
        )
        when is_atom(maybe_record_name) do
+    IO.puts("collect alias")
+
     case List.keyfind(records, maybe_record_name, 1, :not_found) do
       :not_found ->
         # it wasn't a record?
@@ -163,7 +160,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
         # it wasn't a record
         {ast, acc}
 
-      {^module, ^maybe_record_name, _scope, _fields, _line} ->
+      {^module, ^maybe_record_name, _scope, _field_count, _fields, _line} ->
         # this is a record with the same name, but different number of arguments,
         # so an edge-case I don't know how to handle (this would create a different "record" than
         # the one defined we know about)
@@ -182,8 +179,8 @@ defmodule Meandro.Rule.UnusedRecordFields do
         # it wasn't a record
         {ast, acc}
 
-      {^module, ^maybe_record_name, scope, fields, line} ->
-        record = {module, maybe_record_name, scope, fields -- [maybe_field], line}
+      {^module, ^maybe_record_name, scope, field_count, fields, line} ->
+        record = {module, maybe_record_name, scope, field_count, fields -- [maybe_field], line}
         new_records = List.keyreplace(records, maybe_record_name, 1, record)
         {ast, %{acc | records: new_records}}
     end
@@ -200,9 +197,9 @@ defmodule Meandro.Rule.UnusedRecordFields do
         # it wasn't a record
         {ast, acc}
 
-      {^module, ^maybe_record_name, scope, fields, line} ->
+      {^module, ^maybe_record_name, scope, field_count, fields, line} ->
         used_fields = for {field, _value} <- maybe_fields, do: field
-        record = {module, maybe_record_name, scope, fields -- used_fields, line}
+        record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
         new_records = List.keyreplace(records, maybe_record_name, 1, record)
         {ast, %{acc | records: new_records}}
     end
@@ -220,15 +217,11 @@ defmodule Meandro.Rule.UnusedRecordFields do
           # it wasn't a record
           {ast, acc}
 
-        {^module, ^maybe_record_name, scope, fields, line} ->
+        {^module, ^maybe_record_name, scope, field_count, fields, line} ->
           used_fields = for {field, _value} <- maybe_fields, do: field
-          record = {module, maybe_record_name, scope, fields -- used_fields, line}
+          record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
           new_records = List.keyreplace(records, maybe_record_name, 1, record)
           {ast, %{acc | records: new_records}}
-
-        x ->
-          IO.inspect(acc[:records], label: "failing case #{inspect(x)}")
-          {ast, acc}
       end
     else
       {ast, acc}
@@ -247,13 +240,14 @@ defmodule Meandro.Rule.UnusedRecordFields do
         # it wasn't a record
         {ast, acc}
 
-      {^module, ^maybe_record_name, scope, fields, line} ->
-        record = {module, maybe_record_name, scope, fields -- [maybe_field], line}
+      {^module, ^maybe_record_name, scope, field_count, fields, line} ->
+        record = {module, maybe_record_name, scope, field_count, fields -- [maybe_field], line}
         new_records = List.keyreplace(records, maybe_record_name, 1, record)
         {ast, %{acc | records: new_records}}
     end
   end
 
+  # Record updating
   # E.g.: record_name(record_variable, :record_field)
   defp collect_record_info(
          {record_name, [line: _], [{:record, _, _}, field]} = ast,
@@ -267,6 +261,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
     {ast, %{acc | records: new_records}}
   end
 
+  # not a record
   defp collect_record_info(other, acc) do
     {other, acc}
   end

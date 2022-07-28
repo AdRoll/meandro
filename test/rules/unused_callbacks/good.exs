@@ -1,4 +1,4 @@
-defmodule MeandroTest.MyBeh do
+defmodule MeandroTest.Good do
   @moduledoc "all callbacks are used here"
   @callback used(atom()) :: :res_used
   @callback used_too(atom()) :: :res_used_too
@@ -11,6 +11,6 @@ defmodule MeandroTest.MyBeh do
   end
 end
 
-defmodule MeandroTest.MyBehExtra do
+defmodule MeandroTest.GoodExtra do
   @moduledoc "Just an extra module"
 end
