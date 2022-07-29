@@ -72,9 +72,12 @@ defmodule Mix.Tasks.Meandro do
       |> String.to_existing_atom()
 
     Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
+    analyze(files, rules, parsing_style)
+  end
 
+  defp analyze(files, rules, parsing_style) do
     case Meandro.analyze(files, rules, parsing_style) do
-      %{results: []} ->
+      %{results: results} when results == [] ->
         :ok
 
       %{results: results} ->
