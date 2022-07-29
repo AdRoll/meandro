@@ -25,11 +25,13 @@ defmodule Meandro do
         Meandro.Rule.analyze(rule_mod, files_and_asts, :nocontext) ++ acc
       end)
 
+    {results_after_ignores, ignored} = Meandro.Ignore.remove_ignored(results, ignores)
+
     %{
-      results: results,
+      results: results_after_ignores,
       unused_ignores: [],
       stats: %{
-        ignored: 0,
+        ignored: ignored,
         parsed: length(files_and_asts),
         analyzed: length(files_and_asts),
         total: length(files_and_asts)
