@@ -41,6 +41,7 @@ defmodule Meandro.Rule.UnnecessaryFunctionArguments do
 
     for {function, arity, position, line} <- unnecessary_arguments(functions) do
       %Meandro.Rule{
+        module: module,
         file: file,
         line: line,
         text:
