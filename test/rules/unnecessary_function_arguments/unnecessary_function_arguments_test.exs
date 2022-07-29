@@ -8,12 +8,12 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
 
   test "emits no warnings on files without function arguments" do
     files_and_asts = TestHelpers.parse_files([@test_directory_path <> "none.exs"])
-    assert [] = Rule.analyze(UnnecessaryFunctionArguments, files_and_asts, :nocontext)
+    assert [] = Rule.analyze(UnnecessaryFunctionArguments, files_and_asts, [])
   end
 
   test "emits no warnings on files where all function arguments are used" do
     files_and_asts = TestHelpers.parse_files([@test_directory_path <> "good.exs"])
-    assert [] = Rule.analyze(UnnecessaryFunctionArguments, files_and_asts, :nocontext)
+    assert [] = Rule.analyze(UnnecessaryFunctionArguments, files_and_asts, [])
   end
 
   test "emits warnings on files where a function argument is unused" do
@@ -45,7 +45,7 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
 
     assert ^expected_results =
              UnnecessaryFunctionArguments
-             |> Rule.analyze(files_and_asts, :nocontext)
+             |> Rule.analyze(files_and_asts, [])
              |> Enum.sort()
   end
 
@@ -75,7 +75,7 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
 
     assert ^expected_results =
              UnnecessaryFunctionArguments
-             |> Rule.analyze(files_and_asts, :nocontext)
+             |> Rule.analyze(files_and_asts, [])
              |> Enum.sort()
   end
 end

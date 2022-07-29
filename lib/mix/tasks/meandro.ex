@@ -41,7 +41,7 @@ defmodule Mix.Tasks.Meandro do
 
   @impl Mix.Task
   def run(argv \\ []) do
-    {parsed, rest} = OptionParser.parse!(argv, strict: @switches)
+    {parsed_options, rest} = OptionParser.parse!(argv, strict: @switches)
 
     Mix.shell().info("Looking for oxbow lakes to dry up...")
 
@@ -52,19 +52,19 @@ defmodule Mix.Tasks.Meandro do
 
     ## All files except those under _build or _checkouts, and those ignored
     ignores = config[:ignore]
-    files = get_files(parsed[:files], rest)
+    files = get_files(parsed_options[:files], rest)
 
-    parsing_style =
-      parsed
-      |> Keyword.get(:parsing, "parallel")
-      |> String.to_existing_atom()
+    context =
+      parsed_options
+      |> Keyword.put(:mix_env, Mix.env())
+      |> Keyword.put(:app, main_app_name())
 
     Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
-    analyze(files, rules, parsing_style, ignores)
+    analyze(files, rules, context, ignores)
   end
 
-  defp analyze(files, rules, parsing_style, ignores) do
-    case Meandro.analyze(files, rules, parsing_style, ignores) do
+  defp analyze(files, rules, context, ignores) do
+    case Meandro.analyze(files, rules, context, ignores) do
       %{results: results} when results == [] ->
         :ok
 
@@ -76,6 +76,14 @@ defmodule Mix.Tasks.Meandro do
 
         Mix.shell().info("\nRemove the dead code and try again :)")
     end
+  end
+
+  defp main_app_name() do
+    Mix.Project.get().project()[:app]
+  rescue
+    _ ->
+      Mix.shell().info("Meandro couldn't get the Mix project file (mix.exs)")
+      :undefined
   end
 
   defp get_files(files, rest_of_files) when is_binary(files) do

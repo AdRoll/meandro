@@ -8,17 +8,17 @@ defmodule MeandroTest.Rule.UnusedMacrosTest do
 
   test "emits no warnings on files without macros" do
     files_and_asts = parse_files(["none.exs"])
-    assert [] = Rule.analyze(UnusedMacros, files_and_asts, :nocontext)
+    assert [] = Rule.analyze(UnusedMacros, files_and_asts, [])
   end
 
   test "emits no warnings on files where all macros are used" do
     files_and_asts = parse_files(["good.exs"])
-    assert [] = Rule.analyze(UnusedMacros, files_and_asts, :nocontext)
+    assert [] = Rule.analyze(UnusedMacros, files_and_asts, [])
   end
 
   test "emits no warnings on files where one macro is used in the same module and other macro in other module" do
     files_and_asts = parse_files(["one_unused.exs", "use_macro_a.exs"])
-    assert [] = Rule.analyze(UnusedMacros, files_and_asts, :nocontext)
+    assert [] = Rule.analyze(UnusedMacros, files_and_asts, [])
   end
 
   test "emits warnings on files where not all macros are used" do
@@ -32,7 +32,7 @@ defmodule MeandroTest.Rule.UnusedMacrosTest do
                rule: Meandro.Rule.UnusedMacros,
                text: "The macro macro_a/0 is unused"
              }
-           ] = Rule.analyze(UnusedMacros, files_and_asts, :nocontext)
+           ] = Rule.analyze(UnusedMacros, files_and_asts, [])
   end
 
   test "emits warnings on files where there are several macros with the same name and different arity and one of them is not used" do
@@ -46,7 +46,7 @@ defmodule MeandroTest.Rule.UnusedMacrosTest do
                rule: Meandro.Rule.UnusedMacros,
                text: "The macro macro_a/2 is unused"
              }
-           ] = Rule.analyze(UnusedMacros, files_and_asts, :nocontext)
+           ] = Rule.analyze(UnusedMacros, files_and_asts, [])
   end
 
   defp parse_files(paths) do

@@ -192,7 +192,8 @@
           {Credo.Check.Refactor.ModuleDependencies, []},
           {Credo.Check.Refactor.MapMap, []},
           {Credo.Check.Consistency.UnusedVariableNames, []},
-          {Credo.Check.Warning.UnsafeToAtom, []}
+          {Credo.Check.Warning.UnsafeToAtom, []},
+          {Credo.Check.Warning.MixEnv, []}
         ]
       }
     }

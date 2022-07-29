@@ -15,10 +15,12 @@ defmodule Meandro do
   @doc """
   Runs a list of rules over a list of files and returns all the dead code pieces it can find.
   """
-  @spec analyze([Path.t()], [Meandro.Rule.t()], Meandro.Util.parsing_style(), [
+  @spec analyze([Path.t()], [Meandro.Rule.t()], keyword(), [
           Meandro.ConfigParser.ignore()
         ]) :: result()
-  def analyze(files, rules, parsing_style, ignores) do
+  def analyze(files, rules, context, ignores) do
+    parsing_style = Keyword.get(context, :parsing_style, :parallel)
+
     ignores_from_config =
       for {file, rule_ignored, _opts} <- ignores,
           rule <- rules,
@@ -44,7 +46,7 @@ defmodule Meandro do
     {results, ignored_results} =
       rules
       |> Enum.reduce([], fn rule_mod, acc ->
-        Meandro.Rule.analyze(rule_mod, files_and_asts, :nocontext) ++ acc
+        Meandro.Rule.analyze(rule_mod, files_and_asts, context) ++ acc
       end)
       |> remove_ignored_results(all_ignores)
 
