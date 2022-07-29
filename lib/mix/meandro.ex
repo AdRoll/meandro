@@ -59,12 +59,13 @@ defmodule Mix.Tasks.Meandro do
       |> Keyword.get(:parsing, "parallel")
       |> String.to_existing_atom()
 
-    Mix.shell().info(
-      "Meandro will use #{length(files)} files for analysis files ignored: #{inspect(files)}"
-    )
+    Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
+    analyze(files, rules, parsing_style, ignores)
+  end
 
+  defp analyze(files, rules, parsing_style, ignores) do
     case Meandro.analyze(files, rules, parsing_style, ignores) do
-      %{results: []} ->
+      %{results: results} when results == [] ->
         :ok
 
       %{results: results} ->

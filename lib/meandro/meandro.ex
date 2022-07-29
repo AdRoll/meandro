@@ -25,17 +25,21 @@ defmodule Meandro do
           rule_ignored == :all or rule_ignored == rule,
           do: {file, rule}
 
+    files_and_asts = Meandro.Util.parse_files(files, parsing_style)
     files_ignored_from_config = for {file, :all} <- ignores_from_config, do: file
-    # @todo add @meandro attributes to the final list, before calling usort
-    wholly_ignored_files = :lists.usort(files_ignored_from_config)
+    ignores_map = Meandro.Ignore.ignores(files_and_asts)
 
-    files_and_asts =
-      files
-      |> Enum.reject(fn file -> file in wholly_ignored_files end)
-      |> Meandro.Util.parse_files(parsing_style)
+    ignores_from_ast =
+      ignores_map
+      |> Map.to_list()
 
-    # @todo add @meandro attributes to the final list
-    all_ignores = ignores_from_config
+    files_ignored_from_ast =
+      Enum.filter(ignores_from_ast, fn {_file, value} -> value == :ignore end)
+
+    # @todo handle these in Meandro.Ignore
+    _wholly_ignored_files = :lists.usort(files_ignored_from_config ++ files_ignored_from_ast)
+
+    all_ignores = ignores_from_config ++ ignores_from_ast
 
     {results, ignored_results} =
       rules
@@ -44,11 +48,13 @@ defmodule Meandro do
       end)
       |> remove_ignored_results(all_ignores)
 
+    {results_after_ignores, ignored} = Meandro.Ignore.remove_ignored(results, ignores)
+
     %{
-      results: results,
+      results: results_after_ignores,
       unused_ignores: [],
       stats: %{
-        ignored: length(ignored_results),
+        ignored: length(ignored_results) + ignored,
         parsed: length(files_and_asts),
         analyzed: length(files_and_asts),
         total: length(files_and_asts)
