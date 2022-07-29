@@ -79,7 +79,10 @@ defmodule Mix.Tasks.Meandro do
 
       %{results: results} ->
         Mix.shell().error("Meandro found the following oxbow code instances:")
-        for %{text: text} <- results, do: Mix.shell().error(text)
+
+        for %Meandro.Rule{file: file, line: line, module: module, text: text} <- results,
+            do: Mix.shell().error("#{file}:#{line} - In module #{module}: #{text}")
+
         raise "Remove the dead code and try again :)"
     end
   end
