@@ -10,7 +10,7 @@ defmodule MeandroTest.Util do
 
   test "split the file asts on one file:multiple modules" do
     in_both_parsing_types(fn parsing_type ->
-      input_file = "test/mix/files/test_app.exs"
+      input_file = "test/mix/examples/test_app.exs"
       parsed = Meandro.Util.parse_files([input_file], parsing_type)
       [{^input_file, [{:"Mix.Files.TestApp", _ast1}, {:"Mix.Files.TestApp2", _ast2}]}] = parsed
     end)
@@ -18,7 +18,7 @@ defmodule MeandroTest.Util do
 
   test "split the file asts on nested modules" do
     in_both_parsing_types(fn parsing_type ->
-      input_file = "test/mix/files/nested_modules.exs"
+      input_file = "test/mix/examples/nested_modules.exs"
       parsed = Meandro.Util.parse_files([input_file], parsing_type)
 
       [{^input_file, [{:"Mix.Files.MainModule", _ast1}, {:"Mix.Files.NestedModule", _ast2}]}] =
@@ -28,13 +28,13 @@ defmodule MeandroTest.Util do
 
   test "parsing all the modules" do
     in_both_parsing_types(fn parsing_type ->
-      input_files = ["test/mix/files/nested_modules.exs", "test/mix/files/test_app.exs"]
+      input_files = ["test/mix/examples/nested_modules.exs", "test/mix/examples/test_app.exs"]
       parsed = Meandro.Util.parse_files(input_files, parsing_type)
 
       [
-        {"test/mix/files/nested_modules.exs",
+        {"test/mix/examples/nested_modules.exs",
          [{:"Mix.Files.MainModule", _ast1}, {:"Mix.Files.NestedModule", _ast2}]},
-        {"test/mix/files/test_app.exs",
+        {"test/mix/examples/test_app.exs",
          [{:"Mix.Files.TestApp", _ast3}, {:"Mix.Files.TestApp2", _ast4}]}
       ] = parsed
     end)

@@ -4,7 +4,7 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
   alias Meandro.Rule
   alias Meandro.Rule.UnnecessaryFunctionArguments
 
-  @test_directory_path "test/rules/unnecessary_function_arguments/"
+  @test_directory_path "test/rules/unnecessary_function_arguments/examples/"
 
   test "emits no warnings on files without function arguments" do
     files_and_asts = TestHelpers.parse_files([@test_directory_path <> "none.exs"])

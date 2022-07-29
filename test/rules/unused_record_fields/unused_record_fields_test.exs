@@ -4,7 +4,7 @@ defmodule MeandroTest.UnusedRecordField do
   alias Meandro.Rule
   alias Meandro.Rule.UnusedRecordFields
 
-  @test_directory_path "test/rules/unused_record_fields/"
+  @test_directory_path "test/rules/unused_record_fields/examples/"
 
   test "emits no warnings on files without records" do
     files_and_asts = TestHelpers.parse_files([@test_directory_path <> "none.exs"])
