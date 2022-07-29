@@ -12,7 +12,11 @@ defmodule MeandroTest.Util do
     in_both_parsing_types(fn parsing_type ->
       input_file = "test/mix/examples/test_app.exs"
       parsed = Meandro.Util.parse_files([input_file], parsing_type)
-      [{^input_file, [{:"MeandroTest.Examples.TestApp", _ast1}, {:"MeandroTest.Examples.TestApp2", _ast2}]}] = parsed
+
+      [
+        {^input_file,
+         [{:"MeandroTest.Examples.TestApp", _ast1}, {:"MeandroTest.Examples.TestApp2", _ast2}]}
+      ] = parsed
     end)
   end
 
@@ -21,8 +25,13 @@ defmodule MeandroTest.Util do
       input_file = "test/mix/examples/nested_modules.exs"
       parsed = Meandro.Util.parse_files([input_file], parsing_type)
 
-      [{^input_file, [{:"MeandroTest.Examples.MainModule", _ast1}, {:"MeandroTest.Examples.NestedModule", _ast2}]}] =
-        parsed
+      [
+        {^input_file,
+         [
+           {:"MeandroTest.Examples.MainModule", _ast1},
+           {:"MeandroTest.Examples.NestedModule", _ast2}
+         ]}
+      ] = parsed
     end)
   end
 
@@ -33,7 +42,10 @@ defmodule MeandroTest.Util do
 
       [
         {"test/mix/examples/nested_modules.exs",
-         [{:"MeandroTest.Examples.MainModule", _ast1}, {:"MeandroTest.Examples.NestedModule", _ast2}]},
+         [
+           {:"MeandroTest.Examples.MainModule", _ast1},
+           {:"MeandroTest.Examples.NestedModule", _ast2}
+         ]},
         {"test/mix/examples/test_app.exs",
          [{:"MeandroTest.Examples.TestApp", _ast3}, {:"MeandroTest.Examples.TestApp2", _ast4}]}
       ] = parsed
