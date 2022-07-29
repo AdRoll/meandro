@@ -66,7 +66,9 @@ defmodule Meandro.Rule.UnusedCallbacks do
   # We need to keep track of the current module as well, to avoid nested modules messing up
   # our assumptions.
   defp collect_callbacks(
-         {:callback, _, _} = callback,
+         # Pattern [{:"::", _, _}] defines callbacks in AST. Using that to avoid wrong match
+         # againts a var called "callbacks"
+         {:callback, _, [{:"::", _, _}]} = callback,
          %{module: module, callbacks: callbacks} = acc
        ) do
     {name, arity, line} = parse(callback)

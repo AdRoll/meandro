@@ -12,14 +12,14 @@ defmodule Meandro.Ignore do
           pattern: term
         }
 
-  @spec ignores(Meandro.Rule.asts()) :: any
+  @spec ignores(Meandro.Rule.asts()) :: map()
   def ignores(files_and_asts) do
     for {file, module_asts} <- files_and_asts,
         {module_name, ast} <- module_asts do
       {_, {_, _, ignores}} = Macro.prewalk(ast, {file, module_name, []}, &ignores_in_module/2)
       {file, ignores}
     end
-    |> List.foldl(%{}, fn {key, value}, map ->
+    |> Enum.reduce(%{}, fn {key, value}, map ->
       Map.update(map, key, value, fn existing_value -> List.flatten([value | existing_value]) end)
     end)
   end

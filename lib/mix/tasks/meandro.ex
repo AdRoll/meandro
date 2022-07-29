@@ -33,7 +33,6 @@ defmodule Mix.Tasks.Meandro do
   @recursive true
 
   @files_wildcard "**/*.{ex,exs}"
-  @rules_wildcard "lib/meandro/rules/*.ex"
 
   @switches [
     files: :string,
@@ -46,38 +45,26 @@ defmodule Mix.Tasks.Meandro do
 
     Mix.shell().info("Looking for oxbow lakes to dry up...")
 
-    meandro_root =
-      __ENV__.file
-      |> Path.split()
-      |> Enum.slice(0..-4)
-      |> Path.join()
-
-    rule_files =
-      meandro_root
-      |> Path.join(@rules_wildcard)
-      |> Path.wildcard()
-
-    rules =
-      for file <- rule_files,
-          do: Meandro.Util.module_name_from_file_path(file)
+    config = Meandro.ConfigParser.parse_config()
+    rules = config[:rules]
 
     Mix.shell().info("Meandro rules: #{inspect(rules)}")
 
-    ## All files except those under _build or _checkouts
+    ## All files except those under _build or _checkouts, and those ignored
+    ignores = config[:ignore]
     files = get_files(parsed_options[:files], rest)
-
-    Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
 
     context =
       parsed_options
       |> Keyword.put(:mix_env, Mix.env())
       |> Keyword.put(:app, main_app_name())
 
-    analyze(files, rules, context)
+    Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
+    analyze(files, rules, context, ignores)
   end
 
-  defp analyze(files, rules, context) do
-    case Meandro.analyze(files, rules, context) do
+  defp analyze(files, rules, context, ignores) do
+    case Meandro.analyze(files, rules, context, ignores) do
       %{results: results} when results == [] ->
         :ok
 
@@ -87,7 +74,7 @@ defmodule Mix.Tasks.Meandro do
         for %Meandro.Rule{file: file, line: line, module: module, text: text} <- results,
             do: Mix.shell().error("#{file}:#{line} - In module #{module}: #{text}")
 
-        raise "Remove the dead code and try again :)"
+        Mix.shell().info("\nRemove the dead code and try again :)")
     end
   end
 

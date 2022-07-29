@@ -6,7 +6,7 @@ defmodule Meandro.Rule do
 
   defstruct [:module, :file, :line, :text, :rule, :pattern]
 
-  @type t() :: :undefined | module()
+  @type t() :: module()
 
   @type asts() :: [{Path.t(), Macro.t()}]
 

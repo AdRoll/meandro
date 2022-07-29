@@ -13,11 +13,36 @@ defmodule Meandro.Rule.UnusedStructFields do
 
   @impl Meandro.Rule
   def analyze(files_and_asts, _options) do
-    for {file, module_asts} <- files_and_asts,
-        {_module_name, ast} <- module_asts,
-        result <- analyze_module(file, ast, files_and_asts) do
-      result
-    end
+    structs_info = structs_info(files_and_asts)
+
+    unused_structs =
+      List.foldl(files_and_asts, structs_info, fn {_file, module_asts}, structs_info ->
+        List.foldl(module_asts, structs_info, fn {_module_name, ast}, structs_info ->
+          analyze_module(ast, structs_info)
+        end)
+      end)
+
+    filtered_unused_structs =
+      Enum.filter(unused_structs, fn struct_info -> Map.has_key?(struct_info, :fields) end)
+
+    List.foldl(filtered_unused_structs, [], fn %{
+                                                 module_name: module_name,
+                                                 file: file,
+                                                 fields: fields
+                                               },
+                                               results ->
+      List.foldl(fields, results, fn field, results ->
+        [
+          %Meandro.Rule{
+            file: file,
+            pattern: {module_name, field},
+            module: module_name,
+            text: "The field #{field} from the struct #{module_name} is unused"
+          }
+          | results
+        ]
+      end)
+    end)
   end
 
   @impl Meandro.Rule
@@ -33,89 +58,74 @@ defmodule Meandro.Rule.UnusedStructFields do
     false
   end
 
-  defp analyze_module(file, ast, files_and_asts) do
-    struct_info = struct_info(ast)
-
-    case Map.get(struct_info, :fields) do
-      nil ->
-        []
-
-      fields ->
-        module_name = struct_info[:module_name]
-        module_aliases = struct_info[:module_aliases]
-
-        for field <- fields,
-            is_unused?({field, module_name, module_aliases}, files_and_asts) do
-          %Meandro.Rule{
-            file: file,
-            pattern: {module_name, field},
-            module: module_name,
-            text: "The field #{field} from the struct #{module_name} is unused"
-          }
-        end
+  defp structs_info(files_and_asts) do
+    for {file, module_asts} <- files_and_asts,
+        {_module_name, ast} <- module_asts,
+        struct_info = struct_info(ast) do
+      Map.put_new(struct_info, :file, file)
     end
   end
 
-  defp is_unused?({_field, _module, _aliases}, []) do
-    true
-  end
-
-  defp is_unused?({field, module, aliases}, [{_file, ast} | tl]) do
+  defp analyze_module(ast, unused_structs) do
     functions = Meandro.Util.functions(ast)
 
-    unused_in_functions =
-      for function <- functions do
-        case Macro.prewalk(function, {true, {field, module, aliases}}, &is_unused_in_ast/2) do
-          {_, {true, _}} ->
-            is_unused?({field, module, aliases}, tl)
-
-          {_, {false, _}} ->
-            false
-        end
-      end
-
-    if Enum.all?(unused_in_functions) do
-      is_unused?({field, module, aliases}, tl)
-    else
-      false
+    fun = fn function, unused_structs ->
+      {_, unused_structs} = Macro.prewalk(function, unused_structs, &find_usage_in_ast/2)
+      unused_structs
     end
+
+    List.foldl(functions, unused_structs, fun)
   end
 
   # looking for fields where the struct is initialized
-  defp is_unused_in_ast(
+  defp find_usage_in_ast(
          {:%, _, [{:__aliases__, _, aliases}, {:%{}, _, field_list}]} = ast,
-         {result, {field, module, aliases}}
+         unused_structs
        ) do
-    result =
-      case List.keyfind(field_list, field, 0) do
-        nil -> result
-        _ -> false
+    unused_structs =
+      for %{module_aliases: struct_aliases, fields: struct_fields} = struct <- unused_structs do
+        if struct_aliases == aliases do
+          struct_fields =
+            for struct_field <- struct_fields, List.keyfind(field_list, struct_field, 0) == nil do
+              struct_field
+            end
+
+          Map.put(struct, :fields, struct_fields)
+        else
+          struct
+        end
       end
 
-    {ast, {result, {field, module, aliases}}}
+    {ast, unused_structs}
   end
 
   # looking for fields where the struct is modified
-  defp is_unused_in_ast(
+  defp find_usage_in_ast(
          {:%{}, _, [{:|, _, [_, field_list]}]} = ast,
-         {result, {field, module, aliases}}
+         unused_structs
        ) do
-    result =
-      case List.keyfind(field_list, field, 0) do
-        nil -> result
-        _ -> false
+    unused_structs =
+      for %{field: struct_fields} <- unused_structs do
+        for struct_field <- struct_fields, List.keyfind(field_list, struct_field, 0) == nil do
+          struct_field
+        end
       end
 
-    {ast, {result, {field, module, aliases}}}
+    {ast, unused_structs}
   end
 
   # looking for fields where the struct is used
-  defp is_unused_in_ast({:., _, [_, field]} = ast, {_result, {field, module, aliases}}) do
-    {ast, {false, {field, module, aliases}}}
+  defp find_usage_in_ast({:., _, [_, field]} = ast, unused_structs) do
+    unused_structs =
+      for %{field: struct_fields} <- unused_structs do
+        List.delete(struct_fields, field)
+      end
+
+    {ast, unused_structs}
   end
 
-  defp is_unused_in_ast(other, {result, {field, module, aliases}}) do
-    {other, {result, {field, module, aliases}}}
+  defp find_usage_in_ast(other, unused_structs) do
+    {other, unused_structs}
   end
 
   defp struct_info(ast) do

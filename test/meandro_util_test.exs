@@ -1,5 +1,6 @@
 defmodule MeandroTest.Util do
   use ExUnit.Case
+  doctest Meandro.Util
 
   defp in_both_parsing_types(func) do
     [:sequential, :parallel]

@@ -21,10 +21,10 @@ defmodule MeandroTest.UnusedStructFields do
     files_and_asts = TestHelpers.parse_files([file])
 
     expected_text1 =
-      "The field lat from the struct MeandroTest.Examples.UnusedStructFields.Unused is unused"
+      "The field long from the struct MeandroTest.Examples.UnusedStructFields.Unused is unused"
 
     expected_text2 =
-      "The field long from the struct MeandroTest.Examples.UnusedStructFields.Unused is unused"
+      "The field lat from the struct MeandroTest.Examples.UnusedStructFields.Unused is unused"
 
     assert [
              %Rule{

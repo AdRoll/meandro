@@ -2,6 +2,7 @@ defmodule Meandro.MixProject do
   use Mix.Project
 
   @version "0.1.0"
+  @scm_url "https://github.com/AdRoll/meandro"
 
   def project do
     [
@@ -18,7 +19,8 @@ defmodule Meandro.MixProject do
       ],
       aliases: aliases(),
       docs: docs(),
-      preferred_cli_env: [test_all: :test]
+      preferred_cli_env: [test_all: :test],
+      package: package()
     ]
   end
 
@@ -54,6 +56,22 @@ defmodule Meandro.MixProject do
       api_reference: false,
       main: "Mix.Tasks.Meandro",
       source_ref: @version
+    ]
+  end
+
+  defp package do
+    [
+      maintainers: [
+        "Brujo Benavides",
+        "Mackenzie Morgan",
+        "Pablo Brudnick",
+        "Pablo Costas Sánchez",
+        "Pablo López Viqueira",
+        "Pehuén Rodriguez"
+      ],
+      licenses: ["MIT"],
+      links: %{"GitHub" => @scm_url},
+      files: ~w(lib priv LICENSE mix.exs README.md .credo.exs .formatter.exs)
     ]
   end
 end
