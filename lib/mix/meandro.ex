@@ -33,7 +33,6 @@ defmodule Mix.Tasks.Meandro do
   @recursive true
 
   @files_wildcard "**/*.{ex,exs}"
-  @rules_wildcard "lib/meandro/rules/*.ex"
 
   @switches [
     files: :string,
@@ -46,24 +45,13 @@ defmodule Mix.Tasks.Meandro do
 
     Mix.shell().info("Looking for oxbow lakes to dry up...")
 
-    meandro_root =
-      __ENV__.file
-      |> Path.split()
-      |> Enum.slice(0..-4)
-      |> Path.join()
-
-    rule_files =
-      meandro_root
-      |> Path.join(@rules_wildcard)
-      |> Path.wildcard()
-
-    rules =
-      for file <- rule_files,
-          do: Meandro.Util.module_name_from_file_path(file)
+    config = Meandro.ConfigParser.parse_config()
+    rules = config[:rules]
 
     Mix.shell().info("Meandro rules: #{inspect(rules)}")
 
-    ## All files except those under _build or _checkouts
+    ## All files except those under _build or _checkouts, and those ignored
+    ignores = config[:ignore]
     files = get_files(parsed[:files], rest)
 
     parsing_style =
@@ -71,9 +59,11 @@ defmodule Mix.Tasks.Meandro do
       |> Keyword.get(:parsing, "parallel")
       |> String.to_existing_atom()
 
-    Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
+    Mix.shell().info(
+      "Meandro will use #{length(files)} files for analysis files ignored: #{inspect(files)}"
+    )
 
-    case Meandro.analyze(files, rules, parsing_style) do
+    case Meandro.analyze(files, rules, parsing_style, ignores) do
       %{results: []} ->
         :ok
 

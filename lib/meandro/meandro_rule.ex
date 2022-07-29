@@ -6,7 +6,7 @@ defmodule Meandro.Rule do
 
   defstruct [:module, :file, :line, :text, :rule, :pattern]
 
-  @type t() :: :undefined | module()
+  @type t() :: module()
 
   @type asts() :: [{Path.t(), Macro.t()}]
 
@@ -30,7 +30,7 @@ defmodule Meandro.Rule do
 
   @callback is_ignored?(ignore_pattern(), term()) :: boolean()
 
-  @spec analyze(rule_mod :: module(), asts :: asts(), context :: term()) :: [result()]
+  @spec analyze(rule_mod :: t(), asts :: asts(), context :: term()) :: [result()]
   def analyze(rule_mod, asts, context) do
     for result <- rule_mod.analyze(asts, context),
         do: %Meandro.Rule{result | rule: rule_mod}
