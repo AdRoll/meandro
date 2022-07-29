@@ -6,10 +6,6 @@ defmodule Mix.Tasks.MeandroTest do
   test "run mix meandro with --files" do
     input_files = "test/mix/examples/test_app.exs"
 
-    assert Meandro.run(["--files", input_files]) == %{
-             results: [],
-             stats: %{ignored: 0, total: 1, analyzed: 1, parsed: 1},
-             unused_ignores: []
-           }
+    assert :ok == Meandro.run(["--files", input_files])
   end
 end
