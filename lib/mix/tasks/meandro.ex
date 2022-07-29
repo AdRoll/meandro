@@ -78,7 +78,7 @@ defmodule Mix.Tasks.Meandro do
     end
   end
 
-  defp main_app_name do
+  defp main_app_name() do
     Mix.Project.get().project()[:app]
   rescue
     _ ->
