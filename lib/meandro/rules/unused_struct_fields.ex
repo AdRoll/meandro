@@ -7,9 +7,9 @@ defmodule Meandro.Rule.UnusedStructFields do
       struct field or modification
   """
 
-  alias Meandro.Util
-
   @behaviour Meandro.Rule
+
+  alias Meandro.Util
 
   @impl Meandro.Rule
   def analyze(files_and_asts, _options) do
@@ -18,7 +18,6 @@ defmodule Meandro.Rule.UnusedStructFields do
         result <- analyze_module(file, ast, files_and_asts) do
       result
     end
-    |> List.flatten()
   end
 
   @impl Meandro.Rule
@@ -45,20 +44,13 @@ defmodule Meandro.Rule.UnusedStructFields do
         module_name = struct_info[:module_name]
         module_aliases = struct_info[:module_aliases]
 
-        for field <- fields do
-          unused = is_unused?({field, module_name, module_aliases}, files_and_asts)
-
-          case unused do
-            true ->
-              %Meandro.Rule{
-                file: file,
-                pattern: {module_name, field},
-                text: "The field #{field} from the struct #{module_name} is unused"
-              }
-
-            false ->
-              []
-          end
+        for field <- fields,
+            is_unused?({field, module_name, module_aliases}, files_and_asts) do
+          %Meandro.Rule{
+            file: file,
+            pattern: {module_name, field},
+            text: "The field #{field} from the struct #{module_name} is unused"
+          }
         end
     end
   end
@@ -145,8 +137,7 @@ defmodule Meandro.Rule.UnusedStructFields do
   end
 
   defp collect_struct_info({:defstruct, [line: _], [fields]} = ast, struct_info) do
-    struct_info = struct_info |> Map.put_new(:fields, fields)
-    {ast, struct_info}
+    {ast, Map.put_new(struct_info, :fields, fields)}
   end
 
   defp collect_struct_info(other, module_name) do

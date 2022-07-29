@@ -6,9 +6,9 @@ defmodule Meandro.Rule.UnusedRecordFields do
   structure of your records directly.
   """
 
-  alias Meandro.Util
-
   @behaviour Meandro.Rule
+
+  alias Meandro.Util
 
   @impl Meandro.Rule
   def analyze(files_and_asts, _options) do
@@ -151,136 +151,80 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # E.g.: record_name(record_name(), :record_field)
   defp collect_record_info(
          {maybe_record_name, [line: _], [{_, [line: _], _}, maybe_field]} = ast,
-         %{tracking_mode: tracking_mode, current_module: module, records: records} = acc
+         %{tracking_mode: tracking_mode} = acc
        )
        when tracking_mode != :none and is_atom(maybe_record_name) and is_atom(maybe_field) do
-    case List.keyfind(records, maybe_record_name, 1) do
-      nil ->
-        # it wasn't a record
-        {ast, acc}
-
-      {^module, ^maybe_record_name, scope, field_count, fields, line} ->
-        # record being used in the same module it was defined
-        record = {module, maybe_record_name, scope, field_count, fields -- [maybe_field], line}
-        new_records = List.keyreplace(records, maybe_record_name, 1, record)
-        {ast, %{acc | records: new_records}}
-
-      {module, ^maybe_record_name, scope, field_count, fields, line} ->
-        # record being used in an external module
-        record = {module, maybe_record_name, scope, field_count, fields -- [maybe_field], line}
-        new_records = List.keyreplace(records, maybe_record_name, 1, record)
-        {ast, %{acc | records: new_records}}
-    end
+    do_collect_record_info(maybe_record_name, [maybe_field], ast, acc)
   end
 
   # {:spiderman,[line: 26],[{:spiderman,[line: 26],[]},[name: "Gwen Stacy",is_cool?: :heck_yeah]]}
   defp collect_record_info(
          {maybe_record_name, [line: _], [{_, [line: _], _}, maybe_fields]} = ast,
-         %{tracking_mode: tracking_mode, current_module: module, records: records} = acc
+         %{tracking_mode: tracking_mode} = acc
        )
        when tracking_mode != :none and is_atom(maybe_record_name) and is_list(maybe_fields) do
-    case List.keyfind(records, maybe_record_name, 1) do
-      nil ->
-        # it wasn't a record
-        {ast, acc}
-
-      {^module, ^maybe_record_name, scope, field_count, fields, line} ->
-        used_fields = for {field, _value} <- maybe_fields, do: field
-        record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
-        new_records = List.keyreplace(records, maybe_record_name, 1, record)
-        {ast, %{acc | records: new_records}}
-
-      {module, ^maybe_record_name, scope, field_count, fields, line} ->
-        # record being used in an external module
-        used_fields = for {field, _value} <- maybe_fields, do: field
-        record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
-        new_records = List.keyreplace(records, maybe_record_name, 1, record)
-        {ast, %{acc | records: new_records}}
-    end
+    used_fields = for {field, _value} <- maybe_fields, do: field
+    do_collect_record_info(maybe_record_name, used_fields, ast, acc)
   end
 
   # E.g.: setting values: record_name(field1: value1, field2: value2, ...)
   defp collect_record_info(
          {maybe_record_name, [line: _], [maybe_fields]} = ast,
-         %{tracking_mode: tracking_mode, current_module: module, records: records} = acc
+         %{tracking_mode: tracking_mode} = acc
        )
        when tracking_mode != :none and is_atom(maybe_record_name) and is_list(maybe_fields) do
-    if Keyword.keyword?(maybe_fields) do
-      case List.keyfind(records, maybe_record_name, 1) do
-        nil ->
-          # it wasn't a record
-          {ast, acc}
-
-        {^module, ^maybe_record_name, scope, field_count, fields, line} ->
-          # record being used in the same module it was defined
-          used_fields = for {field, _value} <- maybe_fields, do: field
-          record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
-          new_records = List.keyreplace(records, maybe_record_name, 1, record)
-          {ast, %{acc | records: new_records}}
-
-        {module, ^maybe_record_name, scope, field_count, fields, line} ->
-          # record being used in an external module
-          used_fields = for {field, _value} <- maybe_fields, do: field
-          record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
-          new_records = List.keyreplace(records, maybe_record_name, 1, record)
-          {ast, %{acc | records: new_records}}
-      end
-    else
-      {ast, acc}
-    end
+    used_fields = for {field, _value} <- maybe_fields, do: field
+    do_collect_record_info(maybe_record_name, used_fields, ast, acc)
   end
 
   # E.g.: getting 0-based field index: record_name(:field)
   defp collect_record_info(
          {maybe_record_name, [line: _], [maybe_field]} = ast,
-         %{tracking_mode: tracking_mode, current_module: module, records: records} = acc
+         %{tracking_mode: tracking_mode} = acc
        )
        when tracking_mode != :none and is_atom(maybe_record_name) and
               maybe_record_name != :__aliases__ and
               is_atom(maybe_field) do
-    case List.keyfind(records, maybe_record_name, 1) do
-      nil ->
-        # it wasn't a record
-        {ast, acc}
-
-      {^module, ^maybe_record_name, scope, field_count, fields, line} ->
-        # record being used in the same module it was defined
-        record = {module, maybe_record_name, scope, field_count, fields -- [maybe_field], line}
-        new_records = List.keyreplace(records, maybe_record_name, 1, record)
-        {ast, %{acc | records: new_records}}
-
-      {module, ^maybe_record_name, scope, field_count, fields, line} ->
-        # record being used in an external module
-        record = {module, maybe_record_name, scope, field_count, fields -- [maybe_field], line}
-        new_records = List.keyreplace(records, maybe_record_name, 1, record)
-        {ast, %{acc | records: new_records}}
-    end
+    do_collect_record_info(maybe_record_name, [maybe_field], ast, acc)
   end
 
   # Record updating
   # E.g.: record_name(record_variable, :record_field)
   defp collect_record_info(
          {record_name, [line: _], [{:record, _, _}, field]} = ast,
-         %{tracking_mode: tracking_mode, current_module: module, records: records} = acc
+         %{tracking_mode: tracking_mode} = acc
        )
        when tracking_mode != :none and is_atom(record_name) and is_atom(field) do
-    case List.keyfind(records, record_name, 1) do
-      {^module, ^record_name, scope, fields, line} ->
-        # record being used in the same module it was defined
-        record = {module, record_name, scope, fields -- [field], line}
-        new_records = List.keyreplace(records, record_name, 1, record)
-        {ast, %{acc | records: new_records}}
-
-      {module, ^record_name, scope, fields, line} ->
-        # record being used in an external module
-        record = {module, record_name, scope, fields -- [field], line}
-        new_records = List.keyreplace(records, record_name, 1, record)
-        {ast, %{acc | records: new_records}}
-    end
+    do_collect_record_info(record_name, [field], ast, acc)
   end
 
-  # not a record
+  # catch-all clause
   defp collect_record_info(other, acc) do
     {other, acc}
+  end
+
+  defp do_collect_record_info(
+         maybe_record_name,
+         used_fields,
+         ast,
+         %{current_module: module, records: records} = acc
+       ) do
+    case List.keyfind(records, maybe_record_name, 1) do
+      nil ->
+        # it wasn't a record
+        {ast, acc}
+
+      {^module, ^maybe_record_name, scope, field_count, fields, line} ->
+        # record being used in the same module it was defined
+        record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
+        new_records = List.keyreplace(records, maybe_record_name, 1, record)
+        {ast, %{acc | records: new_records}}
+
+      {module, ^maybe_record_name, scope, field_count, fields, line} ->
+        # record being used in an external module
+        record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
+        new_records = List.keyreplace(records, maybe_record_name, 1, record)
+        {ast, %{acc | records: new_records}}
+    end
   end
 end
