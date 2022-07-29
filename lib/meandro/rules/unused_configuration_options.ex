@@ -20,11 +20,10 @@ defmodule Meandro.Rule.UnusedConfigurationOptions do
   @impl Meandro.Rule
   def analyze(files_and_asts, context) do
     with app_name <- Keyword.get(context, :app),
+         true <- is_atom(app_name),
          mix_env <- Keyword.get(context, :mix_env),
-         true <- is_binary(app_name),
-         app_name_atom <- String.to_atom(app_name),
          asts <- aggregate_all_files_asts(files_and_asts) do
-      analyze_asts(asts, app_name_atom, mix_env)
+      analyze_asts(asts, app_name, mix_env)
     else
       _ ->
         []

@@ -36,7 +36,6 @@ defmodule Mix.Tasks.Meandro do
   @rules_wildcard "lib/meandro/rules/*.ex"
 
   @switches [
-    app: :string,
     files: :string,
     parsing: :string
   ]
@@ -69,7 +68,11 @@ defmodule Mix.Tasks.Meandro do
 
     Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
 
-    context = Keyword.put(parsed_options, :mix_env, Mix.env())
+    context =
+      parsed_options
+      |> Keyword.put(:mix_env, Mix.env())
+      |> Keyword.put(:app, main_app_name())
+
     analyze(files, rules, context)
   end
 
@@ -86,6 +89,14 @@ defmodule Mix.Tasks.Meandro do
 
         raise "Remove the dead code and try again :)"
     end
+  end
+
+  defp main_app_name do
+    Mix.Project.get().project()[:app]
+  rescue
+    _ ->
+      Mix.shell().info("Meandro couldn't get the Mix project file (mix.exs)")
+      :undefined
   end
 
   defp get_files(files, rest_of_files) when is_binary(files) do

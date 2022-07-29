@@ -33,7 +33,7 @@ defmodule MeandroTest.Rule.UnusedConfigurationOptions do
              }
            ] =
              Rule.analyze(UnusedConfigurationOptions, files_and_asts,
-               app: "meandro",
+               app: :meandro,
                mix_env: Mix.env()
              )
   end
@@ -45,7 +45,7 @@ defmodule MeandroTest.Rule.UnusedConfigurationOptions do
 
     assert [] =
              Rule.analyze(UnusedConfigurationOptions, files_and_asts,
-               app: "meandro",
+               app: :meandro,
                mix_env: Mix.env()
              )
   end
