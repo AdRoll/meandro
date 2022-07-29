@@ -1,10 +1,10 @@
-defmodule MeandroTest.UnusedRecordField do
+defmodule MeandroTest.UnusedRecordFields do
   use ExUnit.Case
 
   alias Meandro.Rule
   alias Meandro.Rule.UnusedRecordFields
 
-  @test_directory_path "test/rules/unused_record_fields/"
+  @test_directory_path "test/rules/unused_record_fields/examples/"
 
   test "emits no warnings on files without records" do
     files_and_asts = TestHelpers.parse_files([@test_directory_path <> "none.exs"])
@@ -13,6 +13,11 @@ defmodule MeandroTest.UnusedRecordField do
 
   test "emits no warnings on files where all field records are used" do
     files_and_asts = TestHelpers.parse_files([@test_directory_path <> "good.exs"])
+    assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+  end
+
+  test "emits no warnings when it can't infer the record fields" do
+    files_and_asts = TestHelpers.parse_files([@test_directory_path <> "extract.exs"])
     assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
   end
 
@@ -155,22 +160,30 @@ defmodule MeandroTest.UnusedRecordField do
     assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
   end
 
+  test "does not emit warnings for record fields unused locally but used in other modules" do
+    file = @test_directory_path <> "multiple_modules.exs"
+    files_and_asts = TestHelpers.parse_files([file])
+
+    assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+  end
+
   defp read_records(file_path) do
     {:ok, contents} = File.read(file_path)
     pattern = ~r{Record\.defrecordp?\([:a-zA-Z](.*)\)}x
 
-    Regex.scan(pattern, contents, capture: :all_but_first)
+    pattern
+    |> Regex.scan(contents, capture: :all_but_first)
     |> List.flatten()
     |> Enum.map(&parse_str_record/1)
   end
 
   defp parse_str_record(str_record) do
-    [record_name | fields] = String.split(str_record, ", ")
-    record_name_camelized = Macro.camelize(record_name) |> String.to_atom()
-    record_name = String.to_atom(record_name)
+    [str_record_name | str_fields] = String.split(str_record, ", ")
+    record_name_camelized = str_record_name |> Macro.camelize() |> String.to_atom()
+    record_name = String.to_atom(str_record_name)
 
     fields =
-      Enum.map(fields, fn str_field ->
+      Enum.map(str_fields, fn str_field ->
         [field_name, _value] = String.split(str_field, ": ")
         String.to_atom(field_name)
       end)

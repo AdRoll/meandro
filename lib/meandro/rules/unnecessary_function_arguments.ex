@@ -41,6 +41,7 @@ defmodule Meandro.Rule.UnnecessaryFunctionArguments do
 
     for {function, arity, position, line} <- unnecessary_arguments(functions) do
       %Meandro.Rule{
+        module: module,
         file: file,
         line: line,
         text:
@@ -120,7 +121,7 @@ defmodule Meandro.Rule.UnnecessaryFunctionArguments do
 
   defp is_ignored_in_all_clauses?(position, clauses) do
     Enum.all?(clauses, fn {_, arg_patterns} ->
-      Enum.at(arg_patterns, position - 1) |> is_ignored?
+      arg_patterns |> Enum.at(position - 1) |> is_ignored?
     end)
   end
 
