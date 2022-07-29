@@ -55,13 +55,13 @@ defmodule Meandro.ConfigParser do
   defp get_parsing_style(nil), do: :parallel
   defp get_parsing_style(style), do: style
 
-  defp get_ignores(nil), do: []
-
   @spec get_ignores([
           Path.t()
           | {Path.t(), Meandro.Rule.t() | [Meandro.Rule.t()]}
           | {Path.t(), Meandro.Rule.t() | [Meandro.Rule.t()], list()}
         ]) :: [ignore()]
+  defp get_ignores(nil), do: []
+
   defp get_ignores(ignores) do
     for {wildcard, rule, opts} <- normalize_ignores(ignores),
         file <- expand_wildcard(wildcard),
