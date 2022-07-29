@@ -74,7 +74,7 @@ defmodule Mix.Tasks.Meandro do
     Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
 
     case Meandro.analyze(files, rules, parsing_style) do
-      %{results: []} ->
+      %{results: results} when results == [] ->
         :ok
 
       %{results: results} ->
