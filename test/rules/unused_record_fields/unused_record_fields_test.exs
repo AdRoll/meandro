@@ -155,6 +155,13 @@ defmodule MeandroTest.UnusedRecordFields do
     assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
   end
 
+  test "does not emits warnings for record fields unused locally but used in other modules" do
+    file = @test_directory_path <> "multiple_modules.exs"
+    files_and_asts = TestHelpers.parse_files([file])
+
+    assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+  end
+
   defp read_records(file_path) do
     {:ok, contents} = File.read(file_path)
     pattern = ~r{Record\.defrecordp?\([:a-zA-Z](.*)\)}x
