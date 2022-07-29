@@ -9,7 +9,8 @@ defmodule TestHelpers do
     {:ok, contents} = File.read(file_path)
     pattern = ~r{defmodule \s+ ([^\s]+) }x
 
-    Regex.scan(pattern, contents, capture: :all_but_first)
+    pattern
+    |> Regex.scan(contents, capture: :all_but_first)
     |> List.flatten()
     |> List.first()
     |> String.to_atom()

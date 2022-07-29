@@ -1,5 +1,6 @@
 defmodule Mix.Tasks.Meandro do
   # @todo Add to the @moduledoc information about the rules meandro supports
+  @shortdoc "Identifies dead code for you"
   @moduledoc """
   `meandro` is a helper for dead code cleaning. It can assist you on searching
   for Oxbow code (dead code), and thus on keeping your application clean and tidy.
@@ -31,7 +32,6 @@ defmodule Mix.Tasks.Meandro do
   # runs the task recursively in umbrella projects
   @recursive true
 
-  @shortdoc "Identifies dead code for you"
   @files_wildcard "**/*.{ex,exs}"
   @rules_wildcard "lib/meandro/rules/*.ex"
 
@@ -40,7 +40,7 @@ defmodule Mix.Tasks.Meandro do
     parsing: :string
   ]
 
-  @impl true
+  @impl Mix.Task
   def run(argv \\ []) do
     {parsed, rest} = OptionParser.parse!(argv, strict: @switches)
 
@@ -53,7 +53,8 @@ defmodule Mix.Tasks.Meandro do
       |> Path.join()
 
     rule_files =
-      Path.join(meandro_root, @rules_wildcard)
+      meandro_root
+      |> Path.join(@rules_wildcard)
       |> Path.wildcard()
 
     rules =
@@ -66,7 +67,8 @@ defmodule Mix.Tasks.Meandro do
     files = get_files(parsed[:files], rest)
 
     parsing_style =
-      Keyword.get(parsed, :parsing, "parallel")
+      parsed
+      |> Keyword.get(:parsing, "parallel")
       |> String.to_existing_atom()
 
     Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
@@ -83,7 +85,8 @@ defmodule Mix.Tasks.Meandro do
   end
 
   defp get_files(_, _) do
-    Path.wildcard(@files_wildcard)
+    @files_wildcard
+    |> Path.wildcard()
     |> Enum.reject(&is_hidden_name?/1)
   end
 

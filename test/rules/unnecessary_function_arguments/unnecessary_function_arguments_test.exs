@@ -43,7 +43,9 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
     files_and_asts = TestHelpers.parse_files([file])
 
     assert ^expected_results =
-             Enum.sort(Rule.analyze(UnnecessaryFunctionArguments, files_and_asts, :nocontext))
+             UnnecessaryFunctionArguments
+             |> Rule.analyze(files_and_asts, :nocontext)
+             |> Enum.sort()
   end
 
   test "handles exceptions and edge cases correctly" do
@@ -51,8 +53,8 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
     module = "MeandroTest.UFA.MyImpl"
 
     expected_warnings = [
-      {17, :another_callback, 1, 1},
-      {22, :warn, 1, 1}
+      {18, :another_callback, 1, 1},
+      {23, :warn, 1, 1}
     ]
 
     expected_results =
@@ -70,6 +72,8 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
     files_and_asts = TestHelpers.parse_files([file])
 
     assert ^expected_results =
-             Enum.sort(Rule.analyze(UnnecessaryFunctionArguments, files_and_asts, :nocontext))
+             UnnecessaryFunctionArguments
+             |> Rule.analyze(files_and_asts, :nocontext)
+             |> Enum.sort()
   end
 end

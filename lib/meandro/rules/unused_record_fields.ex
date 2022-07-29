@@ -6,9 +6,9 @@ defmodule Meandro.Rule.UnusedRecordFields do
   structure of your records directly.
   """
 
-  alias Meandro.Util
-
   @behaviour Meandro.Rule
+
+  alias Meandro.Util
 
   @impl Meandro.Rule
   def analyze(files_and_asts, _options) do
@@ -17,7 +17,6 @@ defmodule Meandro.Rule.UnusedRecordFields do
         result <- analyze_module(file, ast, files_and_asts) do
       result
     end
-    |> List.flatten()
   end
 
   @impl Meandro.Rule
@@ -188,62 +187,29 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # {:spiderman,[line: 26],[{:spiderman,[line: 26],[]},[name: "Gwen Stacy",is_cool?: :heck_yeah]]}
   defp collect_record_info(
          {maybe_record_name, [line: _], [{_, [line: _], _}, maybe_fields]} = ast,
-         %{current_module: module, records: records} = acc
+         acc
        )
        when is_atom(maybe_record_name) and is_list(maybe_fields) do
-    case List.keyfind(records, maybe_record_name, 1, :not_found) do
-      :not_found ->
-        # it wasn't a record
-        {ast, acc}
-
-      {^module, ^maybe_record_name, scope, field_count, fields, line} ->
-        used_fields = for {field, _value} <- maybe_fields, do: field
-        record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
-        new_records = List.keyreplace(records, maybe_record_name, 1, record)
-        {ast, %{acc | records: new_records}}
-    end
+    do_collect_record_info(maybe_record_name, maybe_fields, ast, acc)
   end
 
   # E.g.: setting values: record_name(field1: value1, field2: value2, ...)
   defp collect_record_info(
          {maybe_record_name, [line: _], [maybe_fields]} = ast,
-         %{current_module: module, records: records} = acc
+         acc
        )
        when is_atom(maybe_record_name) and is_list(maybe_fields) do
-    if Keyword.keyword?(maybe_fields) do
-      case List.keyfind(records, maybe_record_name, 1, :not_found) do
-        :not_found ->
-          # it wasn't a record
-          {ast, acc}
-
-        {^module, ^maybe_record_name, scope, field_count, fields, line} ->
-          used_fields = for {field, _value} <- maybe_fields, do: field
-          record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
-          new_records = List.keyreplace(records, maybe_record_name, 1, record)
-          {ast, %{acc | records: new_records}}
-      end
-    else
-      {ast, acc}
-    end
+    do_collect_record_info(maybe_record_name, maybe_fields, ast, acc)
   end
 
   # E.g.: getting 0-based field index: record_name(:field)
   defp collect_record_info(
          {maybe_record_name, [line: _], [maybe_field]} = ast,
-         %{current_module: module, records: records} = acc
+         acc
        )
        when is_atom(maybe_record_name) and maybe_record_name != :__aliases__ and
               is_atom(maybe_field) do
-    case List.keyfind(records, maybe_record_name, 1, :not_found) do
-      :not_found ->
-        # it wasn't a record
-        {ast, acc}
-
-      {^module, ^maybe_record_name, scope, field_count, fields, line} ->
-        record = {module, maybe_record_name, scope, field_count, fields -- [maybe_field], line}
-        new_records = List.keyreplace(records, maybe_record_name, 1, record)
-        {ast, %{acc | records: new_records}}
-    end
+    do_collect_record_info(maybe_record_name, [{maybe_field, :value}], ast, acc)
   end
 
   # Record updating
@@ -263,5 +229,25 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # not a record
   defp collect_record_info(other, acc) do
     {other, acc}
+  end
+
+  defp do_collect_record_info(maybe_record_name, maybe_fields, ast, acc) do
+    if Keyword.keyword?(maybe_fields) do
+      %{current_module: module, records: records} = acc
+
+      case List.keyfind(records, maybe_record_name, 1, :not_found) do
+        :not_found ->
+          # it wasn't a record
+          {ast, acc}
+
+        {^module, ^maybe_record_name, scope, field_count, fields, line} ->
+          used_fields = for {field, _value} <- maybe_fields, do: field
+          record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
+          new_records = List.keyreplace(records, maybe_record_name, 1, record)
+          {ast, %{acc | records: new_records}}
+      end
+    else
+      {ast, acc}
+    end
   end
 end

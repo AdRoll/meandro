@@ -9,9 +9,9 @@ defmodule Meandro.Rule.UnusedCallbacks do
      If you use `apply(…)` or other method, you'll have to ignore this rule.
   """
 
-  alias Meandro.Util
-
   @behaviour Meandro.Rule
+
+  alias Meandro.Util
 
   @impl Meandro.Rule
   def analyze(files_and_asts, _options) do
