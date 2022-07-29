@@ -1,4 +1,4 @@
-defmodule MeandroTest.MyBeh do
+defmodule MeandroTest.Examples.UnusedCallbacks.None do
   @moduledoc "There are no callbacks here"
 
   @doc "A regular function with a module as parameter"

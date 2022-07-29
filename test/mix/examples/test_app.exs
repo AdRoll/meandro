@@ -1,5 +1,5 @@
-defmodule Mix.Files.TestApp do
+defmodule MeandroTest.Examples.TestApp do
 end
 
-defmodule Mix.Files.TestApp2 do
+defmodule MeandroTest.Examples.TestApp2 do
 end

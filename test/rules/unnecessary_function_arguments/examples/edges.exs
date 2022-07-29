@@ -1,15 +1,15 @@
-defmodule MeandroTest.UFA.MyBeh do
+defmodule MeandroTest.Examples.UnnecessaryFunctionArguments.MyBeh do
   @moduledoc "MyBeh definition"
   @callback a_callback(any()) :: tuple()
   @callback another_callback(any()) :: tuple()
 end
 
-defmodule MeandroTest.UFA.MyImpl do
+defmodule MeandroTest.Examples.UnnecessaryFunctionArguments.BehaviourImplementation do
   @moduledoc "MyBeh implementation"
 
   @behaviour MyBeh
 
-  alias MeandroTest.UFA.MyBeh
+  alias MeandroTest.Examples.UnnecessaryFunctionArguments.MyBeh
 
   @impl MyBeh
   @spec a_callback(any()) :: tuple()

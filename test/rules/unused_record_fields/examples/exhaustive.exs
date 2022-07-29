@@ -1,4 +1,4 @@
-defmodule Rec do
+defmodule MeandroTest.Examples.UnusedRecordFields.Exhaustive do
   require Record
 
   Record.defrecord(:spiderman,

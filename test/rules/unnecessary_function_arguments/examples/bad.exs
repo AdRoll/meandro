@@ -1,4 +1,4 @@
-defmodule MeandroTest.UFA.Bad do
+defmodule MeandroTest.Examples.UnnecessaryFunctionArguments.Bad do
   @moduledoc "Some arguments are unused"
 
   @doc "One argument, one clause"

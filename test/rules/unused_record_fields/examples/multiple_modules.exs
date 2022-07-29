@@ -1,10 +1,10 @@
-defmodule DefinesRecord do
+defmodule MeandroTest.Examples.UnusedRecordFields.Multi.Definition do
   require Record
 
   Record.defrecord(:abc, field: :value)
 end
 
-defmodule UsesRecord do
+defmodule MeandroTest.Examples.UnusedRecordFields.Multi.Usage do
   import DefinesRecord
 
   def use do

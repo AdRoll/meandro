@@ -1,4 +1,4 @@
-defmodule MeandroTest.MyMacroTest do
+defmodule MeandroTest.Examples.UnusedMacros.DifferentArity do
   defmacro macro_a do
     quote do
       :used

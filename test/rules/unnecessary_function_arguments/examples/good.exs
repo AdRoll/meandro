@@ -1,4 +1,4 @@
-defmodule MeandroTest.UFA.Good do
+defmodule MeandroTest.Examples.UnnecessaryFunctionArguments.Good do
   @moduledoc "all function arguments are necessary here"
   @doc "One argument, one clause"
   def one_one(arg1), do: arg1

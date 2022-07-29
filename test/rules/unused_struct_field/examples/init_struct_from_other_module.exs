@@ -1,5 +1,5 @@
-defmodule MeandroTest.MyStructTest do
+defmodule MeandroTest.Examples.UnusedStructFields.Init do
   def test do
-    %MeandroTest.MyStructTest{lat: 1.10, long: 2.10}
+    %MeandroTest.Examples.UnusedStructFields.Unused{lat: 1.10, long: 2.10}
   end
 end

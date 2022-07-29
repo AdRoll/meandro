@@ -1,5 +1,6 @@
-defmodule MeandroTest.MyMacroTestUseMacroA do
+defmodule MeandroTest.Examples.UnusedMacros.UseMacroA do
   def test do
-    MeandroTest.MyMacroTest.macro_a()
+    MeandroTest.Examples.UnusedMacros.DifferentArity.macro_a()
+    MeandroTest.Examples.UnusedMacros.OneUsed.macro_a()
   end
 end
