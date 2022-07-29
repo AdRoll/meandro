@@ -17,7 +17,6 @@ defmodule Meandro.Rule.UnusedRecordFields do
         result <- analyze_module(file, ast, files_and_asts) do
       result
     end
-    |> List.flatten()
   end
 
   @impl Meandro.Rule
@@ -34,50 +33,66 @@ defmodule Meandro.Rule.UnusedRecordFields do
   end
 
   defp analyze_module(file, ast, files_and_asts) do
-    {_, acc} = Macro.prewalk(ast, %{current_module: nil, records: []}, &collect_record_info/2)
+    {_, acc} =
+      Macro.prewalk(
+        ast,
+        %{tracking_mode: :all, current_module: nil, records: []},
+        &collect_record_info/2
+      )
 
-    for {module, name, scope, _num_fields, unused_fields, line} = record <-
+    for {module, name, scope, _field_count, unused_fields, line} = record <-
           Enum.reverse(acc[:records]),
         unused_field <- unused_fields,
-        unused_fields != [] do
+        is_unused?(record, files_and_asts) do
       camel_name = name |> Atom.to_string() |> Macro.camelize()
 
-      cond do
-        scope == :private ->
-          # we don't need to check the other files because it's private
-          %Meandro.Rule{
-            file: file,
-            line: line,
-            module: module,
-            text:
-              "Private record :#{name} (#{camel_name}) has an unused field in the module: #{unused_field}",
-            pattern: {name, unused_field}
-          }
-
-        is_unused?(record, files_and_asts) ->
-          %Meandro.Rule{
-            file: file,
-            line: line,
-            module: module,
-            text:
-              "Public record :#{name} (#{camel_name}) has an unused field in the module: #{unused_field}",
-            pattern: {name, unused_field}
-          }
+      if scope == :private do
+        %Meandro.Rule{
+          file: file,
+          line: line,
+          module: module,
+          text:
+            "Private record :#{name} (#{camel_name}) has an unused field in the module: #{unused_field}",
+          pattern: {name, unused_field}
+        }
+      else
+        %Meandro.Rule{
+          file: file,
+          line: line,
+          module: module,
+          text:
+            "Public record :#{name} (#{camel_name}) has an unused field in the module: #{unused_field}",
+          pattern: {name, unused_field}
+        }
       end
     end
   end
 
   defp is_unused?(_record, []), do: true
+  defp is_unused?({_module, _name, _scope, _field_count, [], _line}, _), do: false
+  # we don't need to check the other files because it's private
+  defp is_unused?({_module, _name, :private, _field_count, _unused_fields, _line}, _), do: true
 
-  defp is_unused?(record, [{_file, ast} | _tl]) do
+  defp is_unused?(record, [{_file, ast} | tl]) do
     {_, acc} =
-      Macro.prewalk(ast, %{current_module: nil, records: [record]}, &count_record_usage/2)
+      Macro.prewalk(
+        ast,
+        %{tracking_mode: :usage, current_module: nil, records: [record]},
+        &collect_record_info/2
+      )
 
-    acc
-  end
+    {module, name, scope, field_count, _unused_fields, line} = record
 
-  defp count_record_usage(ast, acc) do
-    {ast, acc}
+    case List.keyfind(acc[:records], name, 1) do
+      nil ->
+        is_unused?(record, tl)
+
+      {^module, ^name, ^scope, ^field_count, [], ^line} ->
+        false
+
+      _ ->
+        is_unused?(record, tl)
+    end
   end
 
   defp collect_record_info(
@@ -85,13 +100,31 @@ defmodule Meandro.Rule.UnusedRecordFields do
          acc
        ) do
     module_name = Util.ast_module_name_to_atom(aliases)
-    acc = %{acc | current_module: module_name}
-    {ast, acc}
+    {ast, %{acc | current_module: module_name}}
   end
 
+  # module import definitions, we need to track them to know if a given file
+  # will be using a record we know was defined in another file
+  defp collect_record_info(
+         {:import, [line: _], [{:__aliases__, [line: _], [imported_module]}]} = ast,
+         %{tracking_mode: :usage, records: records} = acc
+       ) do
+    case List.keyfind(records, imported_module, 0) do
+      nil ->
+        # a module was imported, but it didn't contain records we know about,
+        # so we can stop matching against this file
+        {ast, %{acc | tracking_mode: :none}}
+
+      {^imported_module, _record_name, _scope, _field_count, _fields, _line} ->
+        {ast, acc}
+    end
+  end
+
+  # record definition (Record.defrecord/3 or Record.defrecordp/3 calls)
+  # we only want to do this when tracking all record information (definitions + usage)
   defp collect_record_info(
          {{:., [line: line], aliases}, _, params} = ast,
-         %{current_module: module, records: records} = acc
+         %{tracking_mode: :all, current_module: module, records: records} = acc
        ) do
     case aliases do
       [{:__aliases__, _, [:Record]}, record_def] when record_def in [:defrecord, :defrecordp] ->
@@ -115,70 +148,25 @@ defmodule Meandro.Rule.UnusedRecordFields do
     end
   end
 
-  # E.g.:
-  # {:{}, [line: 11], [:priv_record, {:variable, [line: 11], nil}, {:variable, [line: 11], nil}]}
-  defp collect_record_info(
-         {:{}, [line: _], [maybe_record_name | _args]} = ast,
-         %{current_module: module, records: records} = acc
-       )
-       when is_atom(maybe_record_name) do
-    case List.keyfind(records, maybe_record_name, 1, :not_found) do
-      :not_found ->
-        # it wasn't a record?
-        {ast, acc}
-
-      {^module, ^maybe_record_name, _scope, _fields, _line} ->
-        # this is a record with the same name, but different number of arguments,
-        # so an edge-case I don't know how to handle (this would create a different "record" than
-        # the one defined we know about)
-        {ast, acc}
-    end
-  end
-
-  # E.g.:
-  # {:{}, [line: _],[{:__aliases__, [line: _],[:PrivRecord]},{:variable, [line: _], nil},{:variable, [line: _], nil}]}
-  defp collect_record_info(
-         {:{}, [line: _], [{:__aliases__, [line: _], [maybe_record_name]} | _args]} = ast,
-         %{current_module: module, records: records} = acc
-       )
-       when is_atom(maybe_record_name) do
-    # Atoms like :PrivRecord are different than atoms like PrivRecord.
-    # When calling Macro.underscore/1 on the latter, the string "priv_record" will be produced,
-    # but when calling the function on the former, it will crash. Those atoms need to be
-    # converted to strings (which are produced such as "Elixir.PrivRecord") and then passed
-    # to Macro.underscore/1 to obtain the same string as with the latter
-    maybe_record_name =
-      maybe_record_name
-      |> Atom.to_string()
-      |> String.trim_leading("Elixir.")
-      |> Macro.underscore()
-      |> String.to_atom()
-
-    case List.keyfind(records, maybe_record_name, 1, :not_found) do
-      :not_found ->
-        # it wasn't a record
-        {ast, acc}
-
-      {^module, ^maybe_record_name, _scope, _field_count, _fields, _line} ->
-        # this is a record with the same name, but different number of arguments,
-        # so an edge-case I don't know how to handle (this would create a different "record" than
-        # the one defined we know about)
-        {ast, acc}
-    end
-  end
-
   # E.g.: record_name(record_name(), :record_field)
   defp collect_record_info(
          {maybe_record_name, [line: _], [{_, [line: _], _}, maybe_field]} = ast,
-         %{current_module: module, records: records} = acc
+         %{tracking_mode: tracking_mode, current_module: module, records: records} = acc
        )
-       when is_atom(maybe_record_name) and is_atom(maybe_field) do
-    case List.keyfind(records, maybe_record_name, 1, :not_found) do
-      :not_found ->
+       when tracking_mode != :none and is_atom(maybe_record_name) and is_atom(maybe_field) do
+    case List.keyfind(records, maybe_record_name, 1) do
+      nil ->
         # it wasn't a record
         {ast, acc}
 
       {^module, ^maybe_record_name, scope, field_count, fields, line} ->
+        # record being used in the same module it was defined
+        record = {module, maybe_record_name, scope, field_count, fields -- [maybe_field], line}
+        new_records = List.keyreplace(records, maybe_record_name, 1, record)
+        {ast, %{acc | records: new_records}}
+
+      {module, ^maybe_record_name, scope, field_count, fields, line} ->
+        # record being used in an external module
         record = {module, maybe_record_name, scope, field_count, fields -- [maybe_field], line}
         new_records = List.keyreplace(records, maybe_record_name, 1, record)
         {ast, %{acc | records: new_records}}
@@ -188,15 +176,22 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # {:spiderman,[line: 26],[{:spiderman,[line: 26],[]},[name: "Gwen Stacy",is_cool?: :heck_yeah]]}
   defp collect_record_info(
          {maybe_record_name, [line: _], [{_, [line: _], _}, maybe_fields]} = ast,
-         %{current_module: module, records: records} = acc
+         %{tracking_mode: tracking_mode, current_module: module, records: records} = acc
        )
-       when is_atom(maybe_record_name) and is_list(maybe_fields) do
-    case List.keyfind(records, maybe_record_name, 1, :not_found) do
-      :not_found ->
+       when tracking_mode != :none and is_atom(maybe_record_name) and is_list(maybe_fields) do
+    case List.keyfind(records, maybe_record_name, 1) do
+      nil ->
         # it wasn't a record
         {ast, acc}
 
       {^module, ^maybe_record_name, scope, field_count, fields, line} ->
+        used_fields = for {field, _value} <- maybe_fields, do: field
+        record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
+        new_records = List.keyreplace(records, maybe_record_name, 1, record)
+        {ast, %{acc | records: new_records}}
+
+      {module, ^maybe_record_name, scope, field_count, fields, line} ->
+        # record being used in an external module
         used_fields = for {field, _value} <- maybe_fields, do: field
         record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
         new_records = List.keyreplace(records, maybe_record_name, 1, record)
@@ -207,16 +202,24 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # E.g.: setting values: record_name(field1: value1, field2: value2, ...)
   defp collect_record_info(
          {maybe_record_name, [line: _], [maybe_fields]} = ast,
-         %{current_module: module, records: records} = acc
+         %{tracking_mode: tracking_mode, current_module: module, records: records} = acc
        )
-       when is_atom(maybe_record_name) and is_list(maybe_fields) do
+       when tracking_mode != :none and is_atom(maybe_record_name) and is_list(maybe_fields) do
     if Keyword.keyword?(maybe_fields) do
-      case List.keyfind(records, maybe_record_name, 1, :not_found) do
-        :not_found ->
+      case List.keyfind(records, maybe_record_name, 1) do
+        nil ->
           # it wasn't a record
           {ast, acc}
 
         {^module, ^maybe_record_name, scope, field_count, fields, line} ->
+          # record being used in the same module it was defined
+          used_fields = for {field, _value} <- maybe_fields, do: field
+          record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
+          new_records = List.keyreplace(records, maybe_record_name, 1, record)
+          {ast, %{acc | records: new_records}}
+
+        {module, ^maybe_record_name, scope, field_count, fields, line} ->
+          # record being used in an external module
           used_fields = for {field, _value} <- maybe_fields, do: field
           record = {module, maybe_record_name, scope, field_count, fields -- used_fields, line}
           new_records = List.keyreplace(records, maybe_record_name, 1, record)
@@ -230,16 +233,24 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # E.g.: getting 0-based field index: record_name(:field)
   defp collect_record_info(
          {maybe_record_name, [line: _], [maybe_field]} = ast,
-         %{current_module: module, records: records} = acc
+         %{tracking_mode: tracking_mode, current_module: module, records: records} = acc
        )
-       when is_atom(maybe_record_name) and maybe_record_name != :__aliases__ and
+       when tracking_mode != :none and is_atom(maybe_record_name) and
+              maybe_record_name != :__aliases__ and
               is_atom(maybe_field) do
-    case List.keyfind(records, maybe_record_name, 1, :not_found) do
-      :not_found ->
+    case List.keyfind(records, maybe_record_name, 1) do
+      nil ->
         # it wasn't a record
         {ast, acc}
 
       {^module, ^maybe_record_name, scope, field_count, fields, line} ->
+        # record being used in the same module it was defined
+        record = {module, maybe_record_name, scope, field_count, fields -- [maybe_field], line}
+        new_records = List.keyreplace(records, maybe_record_name, 1, record)
+        {ast, %{acc | records: new_records}}
+
+      {module, ^maybe_record_name, scope, field_count, fields, line} ->
+        # record being used in an external module
         record = {module, maybe_record_name, scope, field_count, fields -- [maybe_field], line}
         new_records = List.keyreplace(records, maybe_record_name, 1, record)
         {ast, %{acc | records: new_records}}
@@ -250,14 +261,22 @@ defmodule Meandro.Rule.UnusedRecordFields do
   # E.g.: record_name(record_variable, :record_field)
   defp collect_record_info(
          {record_name, [line: _], [{:record, _, _}, field]} = ast,
-         %{current_module: module, records: records} = acc
+         %{tracking_mode: tracking_mode, current_module: module, records: records} = acc
        )
-       when is_atom(record_name) and is_atom(field) do
-    {^module, ^record_name, scope, fields, line} = List.keyfind(records, record_name, 1)
+       when tracking_mode != :none and is_atom(record_name) and is_atom(field) do
+    case List.keyfind(records, record_name, 1) do
+      {^module, ^record_name, scope, fields, line} ->
+        # record being used in the same module it was defined
+        record = {module, record_name, scope, fields -- [field], line}
+        new_records = List.keyreplace(records, record_name, 1, record)
+        {ast, %{acc | records: new_records}}
 
-    record = {module, record_name, scope, fields -- [field], line}
-    new_records = List.keyreplace(records, record_name, 1, record)
-    {ast, %{acc | records: new_records}}
+      {module, ^record_name, scope, fields, line} ->
+        # record being used in an external module
+        record = {module, record_name, scope, fields -- [field], line}
+        new_records = List.keyreplace(records, record_name, 1, record)
+        {ast, %{acc | records: new_records}}
+    end
   end
 
   # not a record
