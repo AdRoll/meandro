@@ -34,7 +34,11 @@ defmodule Meandro.Ignore do
   end
 
   defp remove_ignored([%Meandro.Rule{file: file} = result | results], ignores, {acc, ignored}) do
-    ignores_for_file = ignores |> Map.get(file, [])
+    ignores_for_file =
+      Enum.filter(ignores, fn
+        {^file, _, _} -> true
+        _ -> false
+      end)
 
     if Enum.any?(ignores_for_file, fn ignore -> result_ignored?(result, ignore) end) do
       remove_ignored(results, ignores, {acc, ignored + 1})

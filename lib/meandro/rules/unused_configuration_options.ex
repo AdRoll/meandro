@@ -34,6 +34,7 @@ defmodule Meandro.Rule.UnusedConfigurationOptions do
   def is_ignored?(option, option) do
     true
   end
+
   def is_ignored?(_, _) do
     false
   end
