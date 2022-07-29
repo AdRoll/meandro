@@ -73,7 +73,7 @@ defmodule Mix.Tasks.Meandro do
         for %Meandro.Rule{file: file, line: line, module: module, text: text} <- results,
             do: Mix.shell().error("#{file}:#{line} - In module #{module}: #{text}")
 
-        raise "Remove the dead code and try again :)"
+        Mix.shell().info("\nRemove the dead code and try again :)")
     end
   end
 
