@@ -1,4 +1,4 @@
-defmodule MeandroTest.UnusedStructField do
+defmodule MeandroTest.UnusedStructFields do
   use ExUnit.Case
 
   alias Meandro.Rule
