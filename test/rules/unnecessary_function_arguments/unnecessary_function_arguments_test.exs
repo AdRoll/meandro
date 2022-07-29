@@ -7,25 +7,25 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
   @test_directory_path "test/rules/unnecessary_function_arguments/"
 
   test "emits no warnings on files without function arguments" do
-    files_and_asts = parse_files(["none.exs"])
+    files_and_asts = TestHelpers.parse_files([@test_directory_path <> "none.exs"])
     assert [] = Rule.analyze(UnnecessaryFunctionArguments, files_and_asts, :nocontext)
   end
 
   test "emits no warnings on files where all function arguments are used" do
-    files_and_asts = parse_files(["good.exs"])
+    files_and_asts = TestHelpers.parse_files([@test_directory_path <> "good.exs"])
     assert [] = Rule.analyze(UnnecessaryFunctionArguments, files_and_asts, :nocontext)
   end
 
   test "emits warnings on files where a function argument is unused" do
-    file = "bad.exs"
-    module = read_module_name(file)
+    file = @test_directory_path <> "bad.exs"
+    module = TestHelpers.read_module_name(file)
 
     expected_warnings = [
-      {4, :ignore, 1, 1},
-      {7, :ignore, 2, 2},
-      {10, :also_ignore, 2, 2},
-      {17, :private, 5, 2},
-      {17, :private, 5, 3}
+      {5, :ignore, 1, 1},
+      {8, :ignore, 2, 2},
+      {11, :also_ignore, 2, 2},
+      {18, :private, 5, 2},
+      {18, :private, 5, 3}
     ]
 
     expected_results =
@@ -40,23 +40,36 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
         }
       end
 
-    files_and_asts = parse_files([file])
+    files_and_asts = TestHelpers.parse_files([file])
 
     assert ^expected_results =
              Enum.sort(Rule.analyze(UnnecessaryFunctionArguments, files_and_asts, :nocontext))
   end
 
-  defp parse_files(paths) do
-    files = for p <- paths, do: @test_directory_path <> p
-    Meandro.Util.parse_files(files, :sequential)
-  end
+  test "handles exceptions and edge cases correctly" do
+    file = @test_directory_path <> "edges.exs"
+    module = "MeandroTest.UFA.MyImpl"
 
-  defp read_module_name(file_path) do
-    {:ok, contents} = File.read(@test_directory_path <> file_path)
-    pattern = ~r{defmodule \s+ ([^\s]+) }x
+    expected_warnings = [
+      {17, :another_callback, 1, 1},
+      {22, :warn, 1, 1}
+    ]
 
-    Regex.scan(pattern, contents, capture: :all_but_first)
-    |> List.flatten()
-    |> List.first()
+    expected_results =
+      for {line, function, arity, position} <- expected_warnings do
+        %Rule{
+          file: @test_directory_path <> "edges.exs",
+          line: line,
+          pattern: {function, arity, position},
+          rule: UnnecessaryFunctionArguments,
+          text:
+            "Argument in position #{position} of #{module}.#{function}/#{arity} is ignored in all of its clauses"
+        }
+      end
+
+    files_and_asts = TestHelpers.parse_files([file])
+
+    assert ^expected_results =
+             Enum.sort(Rule.analyze(UnnecessaryFunctionArguments, files_and_asts, :nocontext))
   end
 end

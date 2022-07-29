@@ -28,16 +28,12 @@ defmodule Mix.Tasks.Meandro do
   """
   use Mix.Task
 
-  # @rules should have the following format
-  # [{:unused_callbacks, Meandro.Rule.UnusedCallbacks},
-  #  {:unused_struct_fields, Meandro.Rule.UnusedStructFields},...]
-  @rules []
-
   # runs the task recursively in umbrella projects
   @recursive true
 
   @shortdoc "Identifies dead code for you"
   @files_wildcard "**/*.{ex,exs}"
+  @rules_wildcard "lib/meandro/rules/*.ex"
 
   @switches [
     files: :string,
@@ -49,8 +45,21 @@ defmodule Mix.Tasks.Meandro do
     {parsed, rest} = OptionParser.parse!(argv, strict: @switches)
 
     Mix.shell().info("Looking for oxbow lakes to dry up...")
-    # TODO get all the rules dynamically
-    rules = for {_rule, rule_mod} <- @rules, do: rule_mod
+
+    meandro_root =
+      __ENV__.file
+      |> Path.split()
+      |> Enum.slice(0..-4)
+      |> Path.join()
+
+    rule_files =
+      Path.join(meandro_root, @rules_wildcard)
+      |> Path.wildcard()
+
+    rules =
+      for file <- rule_files,
+          do: Meandro.Util.module_name_from_file_path(file)
+
     Mix.shell().info("Meandro rules: #{inspect(rules)}")
 
     ## All files except those under _build or _checkouts
@@ -61,7 +70,12 @@ defmodule Mix.Tasks.Meandro do
       |> String.to_existing_atom()
 
     Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
-    Meandro.analyze(files, rules, parsing_style)
+
+    result = Meandro.analyze(files, rules, parsing_style)
+    result_str = Kernel.inspect(result, pretty: true)
+
+    IO.puts("Meandro obtained the following results: #{result_str}")
+    result
   end
 
   defp get_files(files, rest_of_files) when is_binary(files) do
@@ -90,6 +104,11 @@ defmodule Mix.Tasks.Meandro do
   end
 
   defp is_hidden_name?("deps/" <> _) do
+    true
+  end
+
+  # there are cases like the node_modules phoenix dep with .ex inside
+  defp is_hidden_name?("node_modules/" <> _) do
     true
   end
 

@@ -21,7 +21,9 @@ defmodule Meandro do
     ignores = Meandro.Ignore.ignores(files_and_asts)
 
     results =
-      for rule_mod <- rules, do: Meandro.Rule.analyze(rule_mod, files_and_asts, :nocontext)
+      Enum.reduce(rules, [], fn rule_mod, acc ->
+        Meandro.Rule.analyze(rule_mod, files_and_asts, :nocontext) ++ acc
+      end)
 
     %{
       results: results,

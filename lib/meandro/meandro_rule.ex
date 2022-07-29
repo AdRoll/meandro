@@ -4,7 +4,7 @@ defmodule Meandro.Rule do
   implement.
   """
 
-  defstruct file: "", line: 0, text: "", rule: :undefined, pattern: :undefined
+  defstruct [:module, :file, :line, :text, :rule, :pattern]
 
   @type t() :: :undefined | module()
 
@@ -18,7 +18,8 @@ defmodule Meandro.Rule do
           line: non_neg_integer(),
           text: charlist(),
           rule: t(),
-          pattern: ignore_pattern()
+          pattern: ignore_pattern(),
+          module: module()
         }
 
   @type ignore_pattern() :: :undefined | tuple()
@@ -33,8 +34,5 @@ defmodule Meandro.Rule do
   def analyze(rule_mod, asts, context) do
     for result <- rule_mod.analyze(asts, context),
         do: %Meandro.Rule{result | rule: rule_mod}
-  rescue
-    x ->
-      reraise "#{inspect(rule_mod)}:analyze/3 failed: #{inspect(x)}", __STACKTRACE__
   end
 end

@@ -36,12 +36,24 @@ defmodule Meandro.Util do
   end
 
   defp maybe_split_by_module(ast, file) do
-    {_, result} = Macro.prewalk(ast, [], &collect_modules/2)
+    {_, {_, result}} = Macro.prewalk(ast, {file, []}, &collect_modules/2)
     {file, result}
   end
 
-  defp collect_modules({:defmodule, _, _} = module_node, acc) do
-    {module_node, acc ++ [{module_name(module_node), module_node}]}
+  defp collect_modules({:defmodule, _, params} = module_node, {file, acc}) do
+    case params do
+      [{:__aliases__, _, _} | _] ->
+        {module_node, {file, acc ++ [{module_name(module_node), module_node}]}}
+
+      _ ->
+        # @todo cry and fix this
+        # try your luck at parsing https://github.com/bencheeorg/benchee/blob/main/lib/benchee.ex
+        Mix.shell().error(
+          "Meandro had to ignore file '#{file}' due to its unexpectedly formed AST"
+        )
+
+        {module_node, {file, acc}}
+    end
   end
 
   defp collect_modules(node, acc) do
@@ -49,16 +61,54 @@ defmodule Meandro.Util do
   end
 
   @doc """
-  Returns the module name given a module node AST
+  Returns the module atom given a file_path
   """
-  @spec module_name(Macro.t()) :: atom()
+  @spec module_name_from_file_path(String.t()) :: module()
+  def module_name_from_file_path(file_path) when is_binary(file_path) do
+    {:ok, contents} = File.read(file_path)
+    pattern = ~r{defmodule \s+ ([^\s]+) }x
+
+    Regex.scan(pattern, contents, capture: :all_but_first)
+    |> List.flatten()
+    |> Module.concat()
+  end
+
+  @doc """
+  Returns the module atom given a module node AST
+  """
+  @spec module_name(Macro.t() | String.t()) :: module()
   def module_name({:defmodule, _, [{:__aliases__, _, aliases}, _]}) do
-    Enum.map_join(aliases, ".", &Atom.to_string/1) |> String.to_atom()
+    ast_module_name_to_atom(aliases)
+  end
+
+  @doc """
+  Returns the module atom joining a list of atoms
+  """
+  @spec ast_module_name_to_atom([atom()]) :: module()
+  def ast_module_name_to_atom(aliases) do
+    aliases |> Enum.map_join(".", &Atom.to_string/1) |> String.to_atom()
+  end
+
+  @doc """
+  Returns the module aliases
+  """
+  @spec module_aliases(Macro.t()) :: Macro.t()
+  def module_aliases(ast) do
+    {_, aliases} = Macro.prewalk(ast, nil, &get_module_aliases/2)
+    aliases
   end
 
   def functions(ast) do
     {_, functions} = Macro.prewalk(ast, [], &get_functions/2)
     functions
+  end
+
+  defp get_module_aliases({:defmodule, _, [{:__aliases__, _, aliases}, _]} = ast, _) do
+    {ast, aliases}
+  end
+
+  defp get_module_aliases(other, aliases) do
+    {other, aliases}
   end
 
   defp get_functions({:def, _, _} = function, functions) do
