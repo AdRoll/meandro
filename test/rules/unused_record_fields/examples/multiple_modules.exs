@@ -9,6 +9,6 @@ defmodule UsesRecord do
 
   def use do
     record = abc()
-    record(:field)
+    abc(:field)
   end
 end

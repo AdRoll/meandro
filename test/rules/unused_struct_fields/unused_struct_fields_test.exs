@@ -1,10 +1,10 @@
-defmodule MeandroTest.UnusedStructField do
+defmodule MeandroTest.UnusedStructFields do
   use ExUnit.Case
 
   alias Meandro.Rule
   alias Meandro.Rule.UnusedStructFields
 
-  @test_directory_path "test/rules/unused_struct_field/examples/"
+  @test_directory_path "test/rules/unused_struct_fields/examples/"
 
   test "emits no warnings on files without structs" do
     files_and_asts = TestHelpers.parse_files([@test_directory_path <> "none.exs"])
