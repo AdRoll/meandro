@@ -62,6 +62,9 @@ defmodule Meandro.Util do
 
   @doc """
   Returns the module atom given a file_path
+
+      iex> Meandro.Util.module_name_from_file_path("./lib/meandro/meandro_rule.ex")
+      Meandro.Rule
   """
   @spec module_name_from_file_path(String.t()) :: module()
   def module_name_from_file_path(file_path) when is_binary(file_path) do
@@ -99,6 +102,9 @@ defmodule Meandro.Util do
     aliases
   end
 
+  @doc """
+  Returns all public and private functions defined in the AST
+  """
   @spec functions(Macro.t()) :: [Macro.t()]
   def functions(ast) do
     {_, functions} = Macro.prewalk(ast, [], &get_functions/2)
