@@ -1,4 +1,4 @@
-defmodule MeandroTest.Examples.Ignores.SeveralIgnored  do
+defmodule MeandroTest.Examples.Ignores.SeveralIgnored do
   @callback used(atom()) :: :res_used
   @callback used_too(atom()) :: :res_used_too
   @meandro [ignore: {Meandro.Rule.UnusedCallbacks, {:unused, 0}}]

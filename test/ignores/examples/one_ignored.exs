@@ -6,7 +6,9 @@ defmodule MeandroTest.Examples.Ignores.OneIgnored do
           long: float
         }
 
-  @meandro [ignore: {Meandro.Rule.UnusedStructFields, {:"MeandroTest.Examples.Ignores.OneIgnored", :lat}}]
+  @meandro [
+    ignore: {Meandro.Rule.UnusedStructFields, {:"MeandroTest.Examples.Ignores.OneIgnored", :lat}}
+  ]
   defp test do
     %MeandroTest.Examples.Ignores.OneIgnored{long: 2.11}
   end

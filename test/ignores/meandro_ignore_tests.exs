@@ -11,8 +11,7 @@ defmodule MeandroTest.Ignore do
              results: [],
              stats: %{analyzed: 1, ignored: 1, parsed: 1, total: 1},
              unused_ignores: []
-           } =
-             Meandro.analyze(files, rules, :sequential)
+           } = Meandro.analyze(files, rules, :sequential)
   end
 
   test "emits no warnings on files with several ignores" do
@@ -23,7 +22,6 @@ defmodule MeandroTest.Ignore do
              results: [],
              stats: %{analyzed: 1, ignored: 3, parsed: 1, total: 1},
              unused_ignores: []
-           } =
-             Meandro.analyze(files, rules, :sequential)
+           } = Meandro.analyze(files, rules, :sequential)
   end
 end
