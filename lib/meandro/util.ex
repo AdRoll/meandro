@@ -37,13 +37,13 @@ defmodule Meandro.Util do
 
   defp maybe_split_by_module(ast, file) do
     {_, {_, result}} = Macro.prewalk(ast, {file, []}, &collect_modules/2)
-    {file, result}
+    {file, Enum.reverse(result)}
   end
 
   defp collect_modules({:defmodule, _, params} = module_node, {file, acc}) do
     case params do
       [{:__aliases__, _, _} | _] ->
-        {module_node, {file, acc ++ [{module_name(module_node), module_node}]}}
+        {module_node, {file, [{module_name(module_node), module_node} | acc]}}
 
       _ ->
         # @todo cry and fix this
@@ -68,7 +68,8 @@ defmodule Meandro.Util do
     {:ok, contents} = File.read(file_path)
     pattern = ~r{defmodule \s+ ([^\s]+) }x
 
-    Regex.scan(pattern, contents, capture: :all_but_first)
+    pattern
+    |> Regex.scan(contents, capture: :all_but_first)
     |> List.flatten()
     |> Module.concat()
   end

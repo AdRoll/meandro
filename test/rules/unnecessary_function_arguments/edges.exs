@@ -7,8 +7,9 @@ end
 defmodule MeandroTest.UFA.MyImpl do
   @moduledoc "MyBeh implementation"
 
-  alias MeandroTest.UFA.MyBeh
   @behaviour MyBeh
+
+  alias MeandroTest.UFA.MyBeh
 
   @impl MyBeh
   @spec a_callback(any()) :: tuple()

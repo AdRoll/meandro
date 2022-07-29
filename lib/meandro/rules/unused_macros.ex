@@ -12,7 +12,6 @@ defmodule Meandro.Rule.UnusedMacros do
         result <- analyze_module(file, ast, files_and_asts) do
       result
     end
-    |> List.flatten()
   end
 
   @impl Meandro.Rule
@@ -32,23 +31,17 @@ defmodule Meandro.Rule.UnusedMacros do
     module_aliases = Meandro.Util.module_aliases(ast)
     macros = macros(ast, module_aliases)
 
-    for macro_info <- macros do
-      unused = is_unused?(macro_info, files_and_asts)
-      macro = macro_info |> Map.get(:name)
-      line = macro_info |> Map.get(:line)
-      arity = macro_info |> Map.get(:arity)
+    for macro_info <- macros,
+        is_unused?(macro_info, files_and_asts) do
+      %{name: macro, line: line, arity: arity} = macro_info
 
-      if unused do
-        %Meandro.Rule{
-          file: file,
-          rule: __MODULE__,
-          line: line,
-          pattern: {macro, arity},
-          text: "The macro #{macro}/#{arity} is unused"
-        }
-      else
-        []
-      end
+      %Meandro.Rule{
+        file: file,
+        rule: __MODULE__,
+        line: line,
+        pattern: {macro, arity},
+        text: "The macro #{macro}/#{arity} is unused"
+      }
     end
   end
 
@@ -58,9 +51,7 @@ defmodule Meandro.Rule.UnusedMacros do
 
   defp is_unused?(macro_info, [{_file, ast} | tl]) do
     functions = Meandro.Util.functions(ast)
-    macro = macro_info |> Map.get(:name)
-    aliases = macro_info |> Map.get(:aliases)
-    arity = macro_info |> Map.get(:arity)
+    %{name: macro, aliases: aliases, arity: arity} = macro_info
 
     unused_in_functions =
       for function <- functions do

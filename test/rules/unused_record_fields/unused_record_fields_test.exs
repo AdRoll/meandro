@@ -159,18 +159,19 @@ defmodule MeandroTest.UnusedRecordField do
     {:ok, contents} = File.read(file_path)
     pattern = ~r{Record\.defrecordp?\([:a-zA-Z](.*)\)}x
 
-    Regex.scan(pattern, contents, capture: :all_but_first)
+    pattern
+    |> Regex.scan(contents, capture: :all_but_first)
     |> List.flatten()
     |> Enum.map(&parse_str_record/1)
   end
 
   defp parse_str_record(str_record) do
-    [record_name | fields] = String.split(str_record, ", ")
-    record_name_camelized = Macro.camelize(record_name) |> String.to_atom()
-    record_name = String.to_atom(record_name)
+    [str_record_name | str_fields] = String.split(str_record, ", ")
+    record_name_camelized = str_record_name |> Macro.camelize() |> String.to_atom()
+    record_name = String.to_atom(str_record_name)
 
     fields =
-      Enum.map(fields, fn str_field ->
+      Enum.map(str_fields, fn str_field ->
         [field_name, _value] = String.split(str_field, ": ")
         String.to_atom(field_name)
       end)
