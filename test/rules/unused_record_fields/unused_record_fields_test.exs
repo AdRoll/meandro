@@ -16,6 +16,11 @@ defmodule MeandroTest.UnusedRecordFields do
     assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
   end
 
+  test "emits no warnings when it can't infer the record fields" do
+    files_and_asts = TestHelpers.parse_files([@test_directory_path <> "extract.exs"])
+    assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+  end
+
   test "emits warnings on files where a record has unused field(s)" do
     file = @test_directory_path <> "bad.exs"
     module = TestHelpers.read_module_name(file)

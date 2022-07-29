@@ -116,9 +116,11 @@ defmodule Meandro.Rule.UnusedRecordFields do
          {{:., [line: line], aliases}, _, params} = ast,
          %{tracking_mode: :all, current_module: module, records: records} = acc
        ) do
-    case aliases do
-      [{:__aliases__, _, [:Record]}, record_def] when record_def in [:defrecord, :defrecordp] ->
-        [name, fields] = params
+    # We need to be careful here because sometimes params is not a list of params.
+    # Particularly when we use Record.extract/2
+    case {aliases, params} do
+      {[{:__aliases__, _, [:Record]}, record_def], [name, fields]}
+      when record_def in [:defrecord, :defrecordp] and is_list(fields) ->
         fields = for {field, _default_value} <- fields, do: field
 
         record =
