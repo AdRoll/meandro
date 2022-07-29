@@ -5,7 +5,7 @@ defmodule MeandroTest.Examples.UnusedRecordFields.Multi.Definition do
 end
 
 defmodule MeandroTest.Examples.UnusedRecordFields.Multi.Usage do
-  import DefinesRecord
+  import MeandroTest.Examples.UnusedRecordFields.Multi.Definition
 
   def use do
     record = abc()
