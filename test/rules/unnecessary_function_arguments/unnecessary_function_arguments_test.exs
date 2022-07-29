@@ -31,6 +31,7 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
     expected_results =
       for {line, function, arity, position} <- expected_warnings do
         %Meandro.Rule{
+          module: module,
           file: @test_directory_path <> "bad.exs",
           line: line,
           pattern: {function, arity, position},
@@ -50,7 +51,7 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
 
   test "handles exceptions and edge cases correctly" do
     file = @test_directory_path <> "edges.exs"
-    module = "MeandroTest.Examples.UnnecessaryFunctionArguments.BehaviourImplementation"
+    module = :"MeandroTest.Examples.UnnecessaryFunctionArguments.BehaviourImplementation"
 
     expected_warnings = [
       {18, :another_callback, 1, 1},
@@ -60,6 +61,7 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
     expected_results =
       for {line, function, arity, position} <- expected_warnings do
         %Rule{
+          module: module,
           file: @test_directory_path <> "edges.exs",
           line: line,
           pattern: {function, arity, position},

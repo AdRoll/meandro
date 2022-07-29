@@ -70,11 +70,22 @@ defmodule Mix.Tasks.Meandro do
     Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
 
     context = Keyword.put(parsed_options, :mix_env, Mix.env())
-    result = Meandro.analyze(files, rules, context)
-    result_str = Kernel.inspect(result, pretty: true)
+    analyze(files, rules, context)
+  end
 
-    IO.puts("Meandro obtained the following results: #{result_str}")
-    result
+  defp analyze(files, rules, context) do
+    case Meandro.analyze(files, rules, context) do
+      %{results: results} when results == [] ->
+        :ok
+
+      %{results: results} ->
+        Mix.shell().error("Meandro found the following oxbow code instances:")
+
+        for %Meandro.Rule{file: file, line: line, module: module, text: text} <- results,
+            do: Mix.shell().error("#{file}:#{line} - In module #{module}: #{text}")
+
+        raise "Remove the dead code and try again :)"
+    end
   end
 
   defp get_files(files, rest_of_files) when is_binary(files) do

@@ -19,17 +19,20 @@ defmodule Meandro do
   def analyze(files, rules, context) do
     parsing_style = Keyword.get(context, :parsing_style, :parallel)
     files_and_asts = Meandro.Util.parse_files(files, parsing_style)
+    ignores = Meandro.Ignore.ignores(files_and_asts)
 
     results =
       Enum.reduce(rules, [], fn rule_mod, acc ->
         Meandro.Rule.analyze(rule_mod, files_and_asts, context) ++ acc
       end)
 
+    {results_after_ignores, ignored} = Meandro.Ignore.remove_ignored(results, ignores)
+
     %{
-      results: results,
+      results: results_after_ignores,
       unused_ignores: [],
       stats: %{
-        ignored: 0,
+        ignored: ignored,
         parsed: length(files_and_asts),
         analyzed: length(files_and_asts),
         total: length(files_and_asts)

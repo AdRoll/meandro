@@ -49,6 +49,7 @@ defmodule Meandro.Rule.UnusedStructFields do
           %Meandro.Rule{
             file: file,
             pattern: {module_name, field},
+            module: module_name,
             text: "The field #{field} from the struct #{module_name} is unused"
           }
         end
@@ -137,7 +138,15 @@ defmodule Meandro.Rule.UnusedStructFields do
   end
 
   defp collect_struct_info({:defstruct, [line: _], [fields]} = ast, struct_info) do
-    {ast, Map.put_new(struct_info, :fields, fields)}
+    field_names =
+      for field <- fields do
+        case field do
+          {name, _default} -> name
+          name -> name
+        end
+      end
+
+    {ast, Map.put_new(struct_info, :fields, field_names)}
   end
 
   defp collect_struct_info(other, module_name) do
