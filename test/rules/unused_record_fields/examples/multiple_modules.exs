@@ -9,6 +9,6 @@ defmodule MeandroTest.Examples.UnusedRecordFields.Multi.Usage do
 
   def use do
     record = abc()
-    record(:field)
+    abc(:field)
   end
 end

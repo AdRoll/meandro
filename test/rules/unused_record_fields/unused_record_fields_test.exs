@@ -1,4 +1,4 @@
-defmodule MeandroTest.UnusedRecordField do
+defmodule MeandroTest.UnusedRecordFields do
   use ExUnit.Case
 
   alias Meandro.Rule
@@ -150,6 +150,13 @@ defmodule MeandroTest.UnusedRecordField do
 
   test "using record fields with each of the record functions/syntaxes counts as them being used" do
     file = @test_directory_path <> "exhaustive.exs"
+    files_and_asts = TestHelpers.parse_files([file])
+
+    assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+  end
+
+  test "does not emits warnings for record fields unused locally but used in other modules" do
+    file = @test_directory_path <> "multiple_modules.exs"
     files_and_asts = TestHelpers.parse_files([file])
 
     assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
