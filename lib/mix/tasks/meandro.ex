@@ -36,13 +36,14 @@ defmodule Mix.Tasks.Meandro do
   @rules_wildcard "lib/meandro/rules/*.ex"
 
   @switches [
+    app: :string,
     files: :string,
     parsing: :string
   ]
 
   @impl Mix.Task
   def run(argv \\ []) do
-    {parsed, rest} = OptionParser.parse!(argv, strict: @switches)
+    {parsed_options, rest} = OptionParser.parse!(argv, strict: @switches)
 
     Mix.shell().info("Looking for oxbow lakes to dry up...")
 
@@ -64,16 +65,12 @@ defmodule Mix.Tasks.Meandro do
     Mix.shell().info("Meandro rules: #{inspect(rules)}")
 
     ## All files except those under _build or _checkouts
-    files = get_files(parsed[:files], rest)
-
-    parsing_style =
-      parsed
-      |> Keyword.get(:parsing, "parallel")
-      |> String.to_existing_atom()
+    files = get_files(parsed_options[:files], rest)
 
     Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
 
-    result = Meandro.analyze(files, rules, parsing_style)
+    context = Keyword.put(parsed_options, :mix_env, Mix.env())
+    result = Meandro.analyze(files, rules, context)
     result_str = Kernel.inspect(result, pretty: true)
 
     IO.puts("Meandro obtained the following results: #{result_str}")

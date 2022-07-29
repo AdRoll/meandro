@@ -8,12 +8,12 @@ defmodule MeandroTest.UnusedRecordFields do
 
   test "emits no warnings on files without records" do
     files_and_asts = TestHelpers.parse_files([@test_directory_path <> "none.exs"])
-    assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+    assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, [])
   end
 
   test "emits no warnings on files where all field records are used" do
     files_and_asts = TestHelpers.parse_files([@test_directory_path <> "good.exs"])
-    assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+    assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, [])
   end
 
   test "emits warnings on files where a record has unused field(s)" do
@@ -47,7 +47,7 @@ defmodule MeandroTest.UnusedRecordFields do
                rule: UnusedRecordFields,
                text: ^expected_text2
              }
-           ] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+           ] = Rule.analyze(UnusedRecordFields, files_and_asts, [])
   end
 
   test "ONLY emits warnings on files where a record has unused field(s)" do
@@ -88,7 +88,7 @@ defmodule MeandroTest.UnusedRecordFields do
                rule: UnusedRecordFields,
                text: ^expected_text2
              }
-           ] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+           ] = Rule.analyze(UnusedRecordFields, files_and_asts, [])
   end
 
   test "emits warnings on files with multiple records, only when there are unused fields" do
@@ -111,7 +111,7 @@ defmodule MeandroTest.UnusedRecordFields do
                rule: UnusedRecordFields,
                text: ^expected_text
              }
-           ] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+           ] = Rule.analyze(UnusedRecordFields, files_and_asts, [])
   end
 
   test "emits warnings on files with multiple records, when there are only unused fields" do
@@ -145,21 +145,21 @@ defmodule MeandroTest.UnusedRecordFields do
                rule: UnusedRecordFields,
                text: ^expected_text2
              }
-           ] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+           ] = Rule.analyze(UnusedRecordFields, files_and_asts, [])
   end
 
   test "using record fields with each of the record functions/syntaxes counts as them being used" do
     file = @test_directory_path <> "exhaustive.exs"
     files_and_asts = TestHelpers.parse_files([file])
 
-    assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+    assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, [])
   end
 
   test "does not emit warnings for record fields unused locally but used in other modules" do
     file = @test_directory_path <> "multiple_modules.exs"
     files_and_asts = TestHelpers.parse_files([file])
 
-    assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, :nocontext)
+    assert [] = Rule.analyze(UnusedRecordFields, files_and_asts, [])
   end
 
   defp read_records(file_path) do

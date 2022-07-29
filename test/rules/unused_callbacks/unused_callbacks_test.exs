@@ -8,12 +8,12 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
 
   test "emits no warnings on files without callbacks" do
     files_and_asts = TestHelpers.parse_files([@test_directory_path <> "none.exs"])
-    assert [] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
+    assert [] = Rule.analyze(UnusedCallbacks, files_and_asts, [])
   end
 
   test "emits no warnings on files where all callbacks are used" do
     files_and_asts = TestHelpers.parse_files([@test_directory_path <> "good.exs"])
-    assert [] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
+    assert [] = Rule.analyze(UnusedCallbacks, files_and_asts, [])
   end
 
   test "emits warnings on nested modules using parent callbacks" do
@@ -30,7 +30,7 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
                rule: UnusedCallbacks,
                text: ^expected_text
              }
-           ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
+           ] = Rule.analyze(UnusedCallbacks, files_and_asts, [])
   end
 
   test "it's not fooled by multiple modules with the same callback names" do
@@ -48,7 +48,7 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
                rule: UnusedCallbacks,
                text: ^expected_text
              }
-           ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
+           ] = Rule.analyze(UnusedCallbacks, files_and_asts, [])
   end
 
   test "emits warnings on files where a callback is unused, and the warnings are sorted" do
@@ -73,7 +73,7 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
                rule: UnusedCallbacks,
                text: ^expected_text2
              }
-           ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
+           ] = Rule.analyze(UnusedCallbacks, files_and_asts, [])
   end
 
   test "ONLY emits warnings on files where a callback is unused" do
@@ -105,6 +105,6 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
                rule: UnusedCallbacks,
                text: ^expected_text2
              }
-           ] = Rule.analyze(UnusedCallbacks, files_and_asts, :nocontext)
+           ] = Rule.analyze(UnusedCallbacks, files_and_asts, [])
   end
 end
