@@ -45,26 +45,16 @@ defmodule Meandro.Rule.UnusedRecordFields do
         unused_field <- unused_fields,
         is_unused?(record, files_and_asts) do
       camel_name = name |> Atom.to_string() |> Macro.camelize()
+      scope_str = scope |> Atom.to_string() |> String.capitalize()
 
-      if scope == :private do
-        %Meandro.Rule{
-          file: file,
-          line: line,
-          module: module,
-          text:
-            "Private record :#{name} (#{camel_name}) has an unused field in the module: #{unused_field}",
-          pattern: {name, unused_field}
-        }
-      else
-        %Meandro.Rule{
-          file: file,
-          line: line,
-          module: module,
-          text:
-            "Public record :#{name} (#{camel_name}) has an unused field in the module: #{unused_field}",
-          pattern: {name, unused_field}
-        }
-      end
+      %Meandro.Rule{
+        file: file,
+        line: line,
+        module: module,
+        text:
+          "#{scope_str} record :#{name} (#{camel_name}) has an unused field in the module: #{unused_field}",
+        pattern: {name, unused_field}
+      }
     end
   end
 
