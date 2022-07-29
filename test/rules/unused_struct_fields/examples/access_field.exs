@@ -1,13 +1,13 @@
-defmodule MeandroTest.MyStructTest do
+defmodule MeandroTest.Examples.UnusedStructFields.Access do
   defstruct [:lat, :long]
 
-  @type t :: %MeandroTest.MyStructTest{
+  @type t :: %MeandroTest.Examples.UnusedStructFields.Access{
           lat: float,
           long: float
         }
 
   defp test do
-    st = %MeandroTest.MyStructTest{}
+    st = %MeandroTest.Examples.UnusedStructFields.Access{}
     latitude = st.lat
     longitude = st.long
   end

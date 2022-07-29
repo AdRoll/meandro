@@ -19,8 +19,12 @@ defmodule MeandroTest.UnusedStructFields do
   test "emits warnings on structs where all fields are unused" do
     file = @test_directory_path <> "all_unused.exs"
     files_and_asts = TestHelpers.parse_files([file])
-    expected_text1 = "The field lat from the struct MeandroTest.MyStructTest is unused"
-    expected_text2 = "The field long from the struct MeandroTest.MyStructTest is unused"
+
+    expected_text1 =
+      "The field lat from the struct MeandroTest.Examples.UnusedStructFields.Unused is unused"
+
+    expected_text2 =
+      "The field long from the struct MeandroTest.Examples.UnusedStructFields.Unused is unused"
 
     assert [
              %Rule{
@@ -39,7 +43,9 @@ defmodule MeandroTest.UnusedStructFields do
   test "emits warnings on structs where at least one field is unused" do
     file = @test_directory_path <> "one_unused.exs"
     files_and_asts = TestHelpers.parse_files([file])
-    expected_text = "The field lat from the struct MeandroTest.MyStructTest is unused"
+
+    expected_text =
+      "The field lat from the struct MeandroTest.Examples.UnusedStructFields.OneUnused is unused"
 
     assert [
              %Rule{
@@ -78,7 +84,10 @@ defmodule MeandroTest.UnusedStructFields do
 
     test "emits a warning when a field is unused in a pattern match" do
       file = @test_directory_path <> "pattern_match_bad.exs"
-      expected_text = "The field long from the struct MeandroTest.MyStructTest is unused"
+
+      expected_text =
+        "The field long from the struct MeandroTest.Examples.UnusedStructFields.Source is unused"
+
       files_and_asts = TestHelpers.parse_files([file])
 
       assert [

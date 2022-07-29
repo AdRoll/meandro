@@ -1,4 +1,4 @@
-defmodule MeandroTest.Nested do
+defmodule MeandroTest.Examples.UnusedCallbacks.Parent do
   @callback used(atom()) :: :res_used
   @callback used_incorrectly() :: :res_used_incorrectly
 
@@ -7,7 +7,7 @@ defmodule MeandroTest.Nested do
     module.used(:with_an_atom)
   end
 
-  defmodule MeandroTest.NestedNested do
+  defmodule MeandroTest.Examples.UnusedCallbacks.Nested do
     def use(module) do
       # This is the right way
       MeandroTest.Nested.use(module)

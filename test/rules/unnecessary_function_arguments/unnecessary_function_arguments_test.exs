@@ -50,7 +50,7 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
 
   test "handles exceptions and edge cases correctly" do
     file = @test_directory_path <> "edges.exs"
-    module = "MeandroTest.UFA.MyImpl"
+    module = "MeandroTest.Examples.UnnecessaryFunctionArguments.BehaviourImplementation"
 
     expected_warnings = [
       {18, :another_callback, 1, 1},

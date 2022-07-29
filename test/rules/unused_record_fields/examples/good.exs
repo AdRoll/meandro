@@ -1,4 +1,4 @@
-defmodule Rec do
+defmodule MeandroTest.Examples.UnusedRecordFields.Good do
   require Record
   Record.defrecord(:public_record, used: true, used_too: true)
 

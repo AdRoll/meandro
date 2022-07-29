@@ -1,7 +1,7 @@
-defmodule MeandroTest.MyStructTest do
+defmodule MeandroTest.Examples.UnusedStructFields.Unused do
   defstruct [:lat, :long]
 
-  @type t :: %MeandroTest.MyStructTest{
+  @type t :: %MeandroTest.Examples.UnusedStructFields.Unused{
           lat: float,
           long: float
         }

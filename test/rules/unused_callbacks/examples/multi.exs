@@ -1,5 +1,5 @@
 # all callbacks are used here
-defmodule MeandroTest.Multi do
+defmodule MeandroTest.Examples.UnusedCallbacks.Multi do
   @callback used_twice(atom()) :: :res_used
   @callback used_only_once(atom()) :: :res_used_only_once
 
@@ -11,7 +11,7 @@ defmodule MeandroTest.Multi do
 end
 
 # same callbacks, but only one is used here
-defmodule MeandroTest.MultiExtra do
+defmodule MeandroTest.Examples.UnusedCallbacks.Multi.Extra do
   @callback used_twice(atom()) :: :res_used
   @callback used_only_once(atom()) :: :res_used_only_once
 

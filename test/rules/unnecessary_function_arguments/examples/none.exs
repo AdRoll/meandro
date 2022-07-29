@@ -1,4 +1,4 @@
-defmodule MeandroTest.UFA.None do
+defmodule MeandroTest.Examples.UnnecessaryFunctionArguments.None do
   @moduledoc "There are no function arguments here here"
 
   @doc "A regular function with no arguments"
