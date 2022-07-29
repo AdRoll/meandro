@@ -132,6 +132,6 @@ defmodule Meandro.Rule.UnusedMacros do
   end
 
   defp arity(list) do
-    Kernel.length(list)
+    length(list)
   end
 end
