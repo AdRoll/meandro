@@ -22,8 +22,15 @@ defmodule Meandro.Rule.UnusedStructFields do
         end)
       end)
 
-    List.foldl(unused_structs, [], fn %{module_name: module_name, file: file, fields: fields},
-                                      results ->
+    filtered_unused_structs =
+      Enum.filter(unused_structs, fn struct_info -> Map.has_key?(struct_info, :fields) end)
+
+    List.foldl(filtered_unused_structs, [], fn %{
+                                                 module_name: module_name,
+                                                 file: file,
+                                                 fields: fields
+                                               },
+                                               results ->
       List.foldl(fields, results, fn field, results ->
         [
           %Meandro.Rule{
