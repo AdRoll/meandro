@@ -99,6 +99,7 @@ defmodule Meandro.Util do
     aliases
   end
 
+  @spec functions(Macro.t()) :: [Macro.t()]
   def functions(ast) do
     {_, functions} = Macro.prewalk(ast, [], &get_functions/2)
     functions

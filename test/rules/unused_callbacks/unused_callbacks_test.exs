@@ -4,7 +4,7 @@ defmodule MeandroTest.Rule.UnusedCallbacks do
   alias Meandro.Rule
   alias Meandro.Rule.UnusedCallbacks
 
-  @test_directory_path "test/rules/unused_callbacks/"
+  @test_directory_path "test/rules/unused_callbacks/examples/"
 
   test "emits no warnings on files without callbacks" do
     files_and_asts = TestHelpers.parse_files([@test_directory_path <> "none.exs"])

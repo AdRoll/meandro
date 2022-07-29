@@ -25,7 +25,7 @@
           "lib/**",
           "test/**"
         ],
-        excluded: [~r"/_build/", ~r"/deps/", ~r"/node_modules/"]
+        excluded: [~r"/_build/", ~r"/deps/", ~r"/node_modules/", ~r"/examples/"]
       },
       #
       # Load and configure plugins here:
@@ -152,8 +152,6 @@
           {Credo.Check.Warning.UnusedTupleOperation, []},
           {Credo.Check.Warning.UnsafeExec, []},
 
-          # TODO [#14]: Enable this rule
-          # {Credo.Check.Readability.Specs, []},
 
           #
           ## Controversial and experimental checks
@@ -168,6 +166,7 @@
           {Credo.Check.Readability.NestedFunctionCalls, []},
           {Credo.Check.Readability.SeparateAliasRequire, []},
           {Credo.Check.Readability.SingleFunctionToBlockPipe, []},
+          {Credo.Check.Readability.Specs, []},
           {Credo.Check.Readability.StrictModuleLayout, []},
           {Credo.Check.Readability.WithCustomTaggedTuple, []},
           {Credo.Check.Refactor.ABCSize, [max_size: 50]},
