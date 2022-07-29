@@ -9,7 +9,7 @@ defmodule Meandro.Rule.UnusedConfigurationOptions do
 
   - This rule assumes that configuration options for an application are only consumed
   within said application or the other applications in the same umbrella project.
-  - If any instance of `Application.get_all_env/1` is detected, this rule will asume
+  - If any instance of `Application.get_all_env/1` is detected, this rule will assume
   that all the config options are used.
   """
 
