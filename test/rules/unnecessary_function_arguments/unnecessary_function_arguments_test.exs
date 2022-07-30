@@ -31,13 +31,11 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
     expected_results =
       for {line, function, arity, position} <- expected_warnings do
         %Meandro.Rule{
-          module: module,
           file: @test_directory_path <> "bad.exs",
           line: line,
           pattern: {function, arity, position},
           rule: Meandro.Rule.UnnecessaryFunctionArguments,
-          text:
-            "Argument in position #{position} of #{module}.#{function}/#{arity} is ignored in all of its clauses"
+          text: "#{function}/#{arity} doesn't need its ##{position} argument"
         }
       end
 
@@ -61,13 +59,11 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
     expected_results =
       for {line, function, arity, position} <- expected_warnings do
         %Rule{
-          module: module,
           file: @test_directory_path <> "edges.exs",
           line: line,
           pattern: {function, arity, position},
           rule: UnnecessaryFunctionArguments,
-          text:
-            "Argument in position #{position} of #{module}.#{function}/#{arity} is ignored in all of its clauses"
+          text: "#{function}/#{arity} doesn't need its ##{position} argument"
         }
       end
 

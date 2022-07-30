@@ -63,9 +63,6 @@ defmodule Meandro.Rule.UnusedConfigurationOptions do
     for config_option <- options_set -- MapSet.to_list(usage_map.used_options),
         usage_map.get_all_env == false do
       %Meandro.Rule{
-        file: nil,
-        line: 0,
-        module: nil,
         text:
           "Configuration option #{inspect(config_option)} (MIX_ENV=#{mix_env}) is not used anywhere in the code",
         pattern: config_option
