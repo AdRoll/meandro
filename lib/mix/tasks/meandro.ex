@@ -59,7 +59,7 @@ defmodule Mix.Tasks.Meandro do
       |> Keyword.put(:mix_env, Mix.env())
       |> Keyword.put(:app, main_app_name())
 
-    Mix.shell().info("Meandro will use #{length(files)} files for analysis: #{inspect(files)}")
+    Mix.shell().info("Meandro will use #{length(files)} files for analysis")
     analyze(files, rules, context, ignores)
   end
 
@@ -71,8 +71,15 @@ defmodule Mix.Tasks.Meandro do
       %{results: results} ->
         Mix.shell().error("Meandro found the following oxbow code instances:")
 
-        for %Meandro.Rule{file: file, line: line, module: module, text: text} <- results,
-            do: Mix.shell().error("#{file}:#{line} - In module #{module}: #{text}")
+        for %Meandro.Rule{file: file, line: line, text: text, rule: rule_mod} <- results do
+          prefix =
+            case rule_mod do
+              Meandro.Rule.UnusedConfigurationOptions -> "Config files"
+              _ -> "#{file}:#{line}"
+            end
+
+          Mix.shell().info("#{prefix} |> #{text}")
+        end
 
         Mix.shell().info("\nRemove the dead code and try again :)")
     end

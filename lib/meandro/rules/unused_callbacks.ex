@@ -43,7 +43,6 @@ defmodule Meandro.Rule.UnusedCallbacks do
       %Meandro.Rule{
         file: file,
         line: line,
-        module: module,
         text: "Callback #{module}:#{name}/#{arity} is not used anywhere in the module",
         pattern: {name, arity}
       }

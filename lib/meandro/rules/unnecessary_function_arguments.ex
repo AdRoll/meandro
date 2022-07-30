@@ -41,11 +41,9 @@ defmodule Meandro.Rule.UnnecessaryFunctionArguments do
 
     for {function, arity, position, line} <- unnecessary_arguments(functions) do
       %Meandro.Rule{
-        module: module,
         file: file,
         line: line,
-        text:
-          "Argument in position #{position} of #{module}.#{function}/#{arity} is ignored in all of its clauses",
+        text: "#{function}/#{arity} doesn't need its ##{position} argument",
         pattern: {function, arity, position}
       }
     end
