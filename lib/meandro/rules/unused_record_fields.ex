@@ -40,7 +40,7 @@ defmodule Meandro.Rule.UnusedRecordFields do
         &collect_record_info/2
       )
 
-    for {module, name, scope, _field_count, unused_fields, line} = record <-
+    for {_module, name, scope, _field_count, unused_fields, line} = record <-
           Enum.reverse(acc[:records]),
         unused_field <- unused_fields,
         is_unused?(record, files_and_asts) do

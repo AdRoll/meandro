@@ -18,7 +18,6 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
 
   test "emits warnings on files where a function argument is unused" do
     file = @test_directory_path <> "bad.exs"
-    module = TestHelpers.read_module_name(file)
 
     expected_warnings = [
       {5, :ignore, 1, 1},
@@ -49,7 +48,6 @@ defmodule MeandroTest.Rule.UnnecessaryFunctionArguments do
 
   test "handles exceptions and edge cases correctly" do
     file = @test_directory_path <> "edges.exs"
-    module = :"MeandroTest.Examples.UnnecessaryFunctionArguments.BehaviourImplementation"
 
     expected_warnings = [
       {18, :another_callback, 1, 1},
