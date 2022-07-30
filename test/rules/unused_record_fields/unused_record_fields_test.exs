@@ -54,6 +54,7 @@ defmodule MeandroTest.UnusedRecordFields do
 
   test "ONLY emits warnings on files where a record has unused field(s)" do
     bad_file = @test_directory_path <> "bad.exs"
+
     files_and_asts =
       TestHelpers.parse_files([
         @test_directory_path <> "none.exs",
