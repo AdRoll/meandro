@@ -12,8 +12,8 @@ defmodule Meandro.Rule.UnnecessaryFunctionArguments do
   @impl Meandro.Rule
   def analyze(files_and_asts, _options) do
     for {file, asts} <- files_and_asts,
-        {mod, ast} <- asts,
-        result <- analyze_file(file, mod, ast) do
+        {_mod, ast} <- asts,
+        result <- analyze_file(file, ast) do
       result
     end
   end
@@ -35,7 +35,7 @@ defmodule Meandro.Rule.UnnecessaryFunctionArguments do
     false
   end
 
-  defp analyze_file(file, module, ast) do
+  defp analyze_file(file, ast) do
     {_, acc} = Macro.prewalk(ast, %{is_impl?: false, functions: %{}}, &collect_functions/2)
     %{functions: functions} = acc
 

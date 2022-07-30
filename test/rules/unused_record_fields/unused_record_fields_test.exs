@@ -23,7 +23,6 @@ defmodule MeandroTest.UnusedRecordFields do
 
   test "emits warnings on files where a record has unused field(s)" do
     file = @test_directory_path <> "bad.exs"
-    module = TestHelpers.read_module_name(file)
     files_and_asts = TestHelpers.parse_files([file])
     record = read_records(file)
     [{camel_name, atom_name, fields}] = record
@@ -55,8 +54,6 @@ defmodule MeandroTest.UnusedRecordFields do
 
   test "ONLY emits warnings on files where a record has unused field(s)" do
     bad_file = @test_directory_path <> "bad.exs"
-    module = TestHelpers.read_module_name(bad_file)
-
     files_and_asts =
       TestHelpers.parse_files([
         @test_directory_path <> "none.exs",
@@ -94,7 +91,6 @@ defmodule MeandroTest.UnusedRecordFields do
 
   test "emits warnings on files with multiple records, only when there are unused fields" do
     file = @test_directory_path <> "mixed.exs"
-    module = TestHelpers.read_module_name(file)
     files_and_asts = TestHelpers.parse_files([file])
     [record1, _record2] = read_records(file)
     {camel_name, atom_name, fields} = record1
@@ -116,7 +112,6 @@ defmodule MeandroTest.UnusedRecordFields do
 
   test "emits warnings on files with multiple records, when there are only unused fields" do
     file = @test_directory_path <> "bad_multiple_records.exs"
-    module = TestHelpers.read_module_name(file)
     files_and_asts = TestHelpers.parse_files([file])
     [record1, record2] = read_records(file)
     {camel_name1, atom_name1, [unused_field1]} = record1
