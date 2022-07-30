@@ -51,8 +51,8 @@ defmodule Meandro.Rule.UnusedConfigurationOptions do
       app_name
       |> Application.get_all_env()
       |> Keyword.keys()
-      |> Enum.sort()
       |> maybe_aggregate_options(app_name)
+      |> Enum.sort()
 
     usage_map =
       Enum.reduce(asts, %{get_all_env: false, used_options: MapSet.new()}, fn ast, acc ->

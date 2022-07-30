@@ -14,14 +14,6 @@ defmodule MeandroTest.Rule.UnusedConfigurationOptions do
              %Rule{
                file: nil,
                line: 0,
-               pattern: :unused_option,
-               rule: UnusedConfigurationOptions,
-               text:
-                 "Configuration option :unused_option (MIX_ENV=test) is not used anywhere in the code"
-             },
-             %Rule{
-               file: nil,
-               line: 0,
                pattern: :other_unused_option,
                rule: UnusedConfigurationOptions,
                text:
@@ -34,6 +26,14 @@ defmodule MeandroTest.Rule.UnusedConfigurationOptions do
                rule: UnusedConfigurationOptions,
                text:
                  "Configuration option :unused_keyed_option (MIX_ENV=test) is not used anywhere in the code"
+             },
+             %Rule{
+               file: nil,
+               line: 0,
+               pattern: :unused_option,
+               rule: UnusedConfigurationOptions,
+               text:
+                 "Configuration option :unused_option (MIX_ENV=test) is not used anywhere in the code"
              }
            ] =
              Rule.analyze(UnusedConfigurationOptions, files_and_asts,
