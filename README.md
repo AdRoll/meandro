@@ -1,4 +1,4 @@
-# Meandro
+# Meandro [![Build Status](https://github.com/AdRoll/meandro/actions/workflows/main.yml/badge.svg)](https://github.com/AdRoll/meandro) [![Hex pm](http://img.shields.io/hexpm/v/meandro.svg?style=flat)](https://hex.pm/packages/meandro)
 
 ## Find dead code in Elixir applications
 
@@ -12,6 +12,17 @@ What kind of dead code? Meandro currently has rules to find:
 - unused configuration options
 - unused callbacks
 - unused macros
+
+## Sample Output
+
+If Meandro detects issues in your code, it will report them as follows…
+
+```
+lib/cache.ex:23 |> execute/1 doesn't need its #1 argument
+lib/application.ex:15 |> maybe_evaluate/2 doesn't need its #1 argument
+lib/application.ex:45 |> maybe_evaluate/3 doesn't need its #2 argument
+Config files |> Configuration option :color (MIX_ENV=dev) is not used anywhere in the code
+```
 
 ## Installation
 
