@@ -50,7 +50,6 @@ defmodule Meandro.Rule.UnusedRecordFields do
       %Meandro.Rule{
         file: file,
         line: line,
-        module: module,
         text:
           "#{scope_str} record :#{name} (#{camel_name}) has an unused field in the module: #{unused_field}",
         pattern: {name, unused_field}

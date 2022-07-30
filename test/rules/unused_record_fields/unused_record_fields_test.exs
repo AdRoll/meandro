@@ -39,7 +39,6 @@ defmodule MeandroTest.UnusedRecordFields do
              %Rule{
                file: ^file,
                line: 3,
-               module: ^module,
                pattern: {^atom_name, ^unused_field1},
                rule: UnusedRecordFields,
                text: ^expected_text1
@@ -47,7 +46,6 @@ defmodule MeandroTest.UnusedRecordFields do
              %Rule{
                file: ^file,
                line: 3,
-               module: ^module,
                pattern: {^atom_name, ^unused_field2},
                rule: UnusedRecordFields,
                text: ^expected_text2
@@ -80,7 +78,6 @@ defmodule MeandroTest.UnusedRecordFields do
              %Rule{
                file: ^bad_file,
                line: 3,
-               module: ^module,
                pattern: {^atom_name, ^unused_field1},
                rule: UnusedRecordFields,
                text: ^expected_text1
@@ -88,7 +85,6 @@ defmodule MeandroTest.UnusedRecordFields do
              %Rule{
                file: ^bad_file,
                line: 3,
-               module: ^module,
                pattern: {^atom_name, ^unused_field2},
                rule: UnusedRecordFields,
                text: ^expected_text2
@@ -111,7 +107,6 @@ defmodule MeandroTest.UnusedRecordFields do
              %Rule{
                file: ^file,
                line: 3,
-               module: ^module,
                pattern: {^atom_name, ^unused_field},
                rule: UnusedRecordFields,
                text: ^expected_text
@@ -137,7 +132,6 @@ defmodule MeandroTest.UnusedRecordFields do
              %Rule{
                file: ^file,
                line: 3,
-               module: ^module,
                pattern: {^atom_name1, ^unused_field1},
                rule: UnusedRecordFields,
                text: ^expected_text1
@@ -145,7 +139,6 @@ defmodule MeandroTest.UnusedRecordFields do
              %Rule{
                file: ^file,
                line: 4,
-               module: ^module,
                pattern: {^atom_name2, ^unused_field2},
                rule: UnusedRecordFields,
                text: ^expected_text2
