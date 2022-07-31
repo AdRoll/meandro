@@ -47,7 +47,12 @@ defmodule Meandro.Rule.UnusedConfigurationOptions do
   end
 
   defp analyze_asts(asts, app_name, mix_env) do
-    options_set = app_name |> Application.get_all_env() |> Keyword.keys() |> Enum.sort()
+    options_set =
+      app_name
+      |> Application.get_all_env()
+      |> Keyword.keys()
+      |> maybe_aggregate_options(app_name)
+      |> Enum.sort()
 
     usage_map =
       Enum.reduce(asts, %{get_all_env: false, used_options: MapSet.new()}, fn ast, acc ->
@@ -62,6 +67,22 @@ defmodule Meandro.Rule.UnusedConfigurationOptions do
         pattern: config_option
       }
     end
+  end
+
+  # This covers cases where using the macro config/3
+  # config(root_key, key, opts) so, `options` here is a root_key
+  defp maybe_aggregate_options(options, app_name) do
+    Enum.reduce(options, [], fn option, acc ->
+      key = Application.get_env(app_name, option)
+
+      case Keyword.keyword?(key) do
+        true ->
+          [Keyword.keys(key) | acc] |> List.flatten()
+
+        false ->
+          [option | acc]
+      end
+    end)
   end
 
   defp analyze_ast(ast, acc0, app_name) do

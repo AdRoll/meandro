@@ -10,26 +10,30 @@ defmodule MeandroTest.Rule.UnusedConfigurationOptions do
     file = @test_directory_path <> "module.exs"
     files_and_asts = TestHelpers.parse_files([file])
 
-    expected_text1 =
-      "Configuration option :other_unused_option (MIX_ENV=test) is not used anywhere in the code"
-
-    expected_text2 =
-      "Configuration option :unused_option (MIX_ENV=test) is not used anywhere in the code"
-
     assert [
              %Rule{
                file: nil,
                line: 0,
                pattern: :other_unused_option,
                rule: UnusedConfigurationOptions,
-               text: ^expected_text1
+               text:
+                 "Configuration option :other_unused_option (MIX_ENV=test) is not used anywhere in the code"
+             },
+             %Rule{
+               file: nil,
+               line: 0,
+               pattern: :unused_keyed_option,
+               rule: UnusedConfigurationOptions,
+               text:
+                 "Configuration option :unused_keyed_option (MIX_ENV=test) is not used anywhere in the code"
              },
              %Rule{
                file: nil,
                line: 0,
                pattern: :unused_option,
                rule: UnusedConfigurationOptions,
-               text: ^expected_text2
+               text:
+                 "Configuration option :unused_option (MIX_ENV=test) is not used anywhere in the code"
              }
            ] =
              Rule.analyze(UnusedConfigurationOptions, files_and_asts,
